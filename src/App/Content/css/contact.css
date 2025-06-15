@@ -1,0 +1,65 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+}
+
+header {
+    background-color: #128C7E;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+main {
+    padding: 10px;
+}
+
+.contacts {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar {
+    padding: 10px;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.contact-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.contact-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid #f0f2f5;
+    cursor: pointer;
+}
+
+.contact-item:hover {
+    background-color: #f0f0f0;
+}
+
+.contact-info {
+    flex-grow: 1;
+}
+
+.contact-name {
+    font-weight: bold;
+}
+
+.timestamp {
+    font-size: 0.9em;
+    color: gray;
+}
