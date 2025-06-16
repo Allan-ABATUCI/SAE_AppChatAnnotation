@@ -35,6 +35,7 @@ class InstallateurMemcached {
             die("\033[31mERREUR: Lancez ce script avec sudo\033[0m\n");
         }
     }
+    
 
     private function detecterOS() {
         echo "Détection du système... ";
@@ -50,35 +51,19 @@ class InstallateurMemcached {
         }
     }
 
-    private function installerPaquets() {
-    echo "Vérification des paquets...\n";
 
-    if ($this->os === 'debian') {
-        $paquets = ['memcached', 'php-memcached', 'libmemcached-tools'];
-        shell_exec('apt-get update -qq');
+   private function installerPaquets() {
+        echo "Vérification des paquets...\n";
 
-        foreach ($paquets as $pkg) {
-            if (!$this->paquetInstalle($pkg)) {
-                echo "Installation de $pkg...\n";
-                shell_exec("apt-get install -y $pkg");
-            } else {
-                echo "$pkg déjà installé\n";
-            }
+        if ($this->os === 'debian') {
+            $this->installerPaquetsDebian();
+        } else {
+            $this->installerPaquetsRHEL();
         }
-    } else {
-        $paquets = ['memcached', 'php-pecl-memcached'];
-        shell_exec('yum install -y epel-release');
 
-        foreach ($paquets as $pkg) {
-            if (!$this->paquetInstalle($pkg, false)) {
-                echo "Installation de $pkg...\n";
-                shell_exec("yum install -y $pkg");
-            } else {
-                echo "$pkg déjà installé\n";
-            }
-        }
+        $this->installerExtensionPHP();
     }
-}
+
 private function paquetInstalle($nom, $debian = true) {
     $cmd = $debian 
         ? "dpkg -s $nom 2>/dev/null | grep -q '^Status: install' && echo 1 || echo 0" 
@@ -146,6 +131,73 @@ private function paquetInstalle($nom, $debian = true) {
 
         echo "Test serveur Memcached (netcat): ";
         system("echo stats | nc -N localhost " . $this->port . " | grep uptime");
+    }
+    private function detecterPHP() {
+        $this->phpVersion = shell_exec('php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;"');
+        echo "Version PHP détectée : {$this->phpVersion}\n";
+    }
+
+    
+
+    private function installerPaquetsDebian() {
+        $paquets = ['memcached', 'libmemcached-tools'];
+        shell_exec('apt-get update -qq');
+
+        foreach ($paquets as $pkg) {
+            if (!$this->paquetInstalle($pkg)) {
+                echo "Installation de $pkg...\n";
+                shell_exec("apt-get install -y $pkg");
+            } else {
+                echo "$pkg déjà installé\n";
+            }
+        }
+    }
+
+    private function installerPaquetsRHEL() {
+        $paquets = ['memcached'];
+        shell_exec('yum install -y epel-release');
+
+        foreach ($paquets as $pkg) {
+            if (!$this->paquetInstalle($pkg, false)) {
+                echo "Installation de $pkg...\n";
+                shell_exec("yum install -y $pkg");
+            } else {
+                echo "$pkg déjà installé\n";
+            }
+        }
+    }
+
+    private function installerExtensionPHP() {
+        echo "Installation de l'extension PHP Memcached...\n";
+
+        if ($this->os === 'debian') {
+            $pkgName = 'php-memcached';
+            if ((int)$this->phpVersion >= 80) {
+                $pkgName = 'php8.0-memcached'; // Adaptez selon votre version
+            }
+            
+            if (!$this->paquetInstalle($pkgName)) {
+                shell_exec("apt-get install -y $pkgName");
+            }
+        } else {
+            shell_exec('yum install -y php-pecl-memcached');
+        }
+
+        // Redémarrer le service web
+        $this->redemarrerServiceWeb();
+    }
+
+    private function redemarrerServiceWeb() {
+        echo "Redémarrage du service web...\n";
+        if (shell_exec('systemctl is-active apache2 2>/dev/null')) {
+            shell_exec('systemctl restart apache2');
+        } elseif (shell_exec('systemctl is-active httpd 2>/dev/null')) {
+            shell_exec('systemctl restart httpd');
+        } elseif (shell_exec('systemctl is-active php-fpm 2>/dev/null')) {
+            shell_exec('systemctl restart php-fpm');
+        } else {
+            echo "Aucun service web détecté à redémarrer\n";
+        }
     }
 }
 
