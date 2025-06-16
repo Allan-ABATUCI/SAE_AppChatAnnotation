@@ -51,7 +51,7 @@
 #### 6. **Memcached**
 
 - Le server web et websocket partage les données de session par memcached
-  - ⚠️ Important le scipt change des configuration d'apache
+  - ⚠️ Important le scipt change des configuration pour mettre un service Memcached
   - Il y a un script `install.sh` qui permet d'installer et configurer memcached et l'extension php-memcached
   - Faire `chmod +x install.sh` pour ensuite le lancer `sudo ./install.sh`
   - Si problème regarde le fichier et improvise.
