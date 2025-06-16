@@ -21,12 +21,13 @@ class InstallateurMemcached {
     public function lancer() {
     $this->verifierRoot();
     $this->detecterOS();
-    $this->detecterPHP(); 
+    $this->detecterPHP(); // <- Ajoutez cette ligne
     $this->installerPaquets();
+    $this->installerExtensionPHP(); // <- Ajoutez cette ligne
     $this->verifierNetcat();
     $this->configurerMemcached();
     $this->demarrerService();
-    $this->verifierExtensionPHP(); 
+    $this->verifierExtensionPHP(); // Vérification finale
     $this->verifierInstallation();
 }
     public function getPort(){
@@ -38,8 +39,8 @@ class InstallateurMemcached {
         }
     }
     private function detecterPHP() {
-    $this->phpVersion = shell_exec('php -r "echo PHP_MAJOR_VERSION;"');
-    echo "Version PHP détectée : {$this->phpVersion}\n";
+    $this->phpVersion = (int)shell_exec('php -r "echo PHP_MAJOR_VERSION;"');
+    echo "Version PHP détectée : {$this->phpVersion}.x\n";
 }
     
 
@@ -229,16 +230,19 @@ private function obtenirStatsServeur() {
     echo "Installation de l'extension PHP Memcached...\n";
 
     if ($this->os === 'debian') {
-        $pkgName = 'php-memcached';
-        if ($this->phpVersion >= 8) {
-            $pkgName = "php{$this->phpVersion}-memcached";
-        }
+        // Pour Ubuntu/Debian
+        $pkgName = "php{$this->phpVersion}-memcached";
         
         if (!$this->paquetInstalle($pkgName)) {
             shell_exec("apt-get install -y $pkgName");
+            echo "Extension installée. Activation...\n";
+            shell_exec("phpenmod memcached");
         }
     } else {
-        shell_exec('yum install -y php-pecl-memcached');
+        // Pour RHEL/CentOS
+        if (!$this->paquetInstalle('php-pecl-memcached', false)) {
+            shell_exec("yum install -y php-pecl-memcached");
+        }
     }
 
     $this->redemarrerServiceWeb();
