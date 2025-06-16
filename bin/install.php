@@ -19,14 +19,16 @@ class InstallateurMemcached {
     }
 
     public function lancer() {
-        $this->verifierRoot();
-        $this->detecterOS();
-        $this->installerPaquets();
-        $this->verifierNetcat();
-        $this->configurerMemcached();
-        $this->demarrerService();
-        $this->verifierInstallation();
-    }
+    $this->verifierRoot();
+    $this->detecterOS();
+    $this->detecterPHP(); 
+    $this->installerPaquets();
+    $this->verifierNetcat();
+    $this->configurerMemcached();
+    $this->demarrerService();
+    $this->verifierExtensionPHP(); 
+    $this->verifierInstallation();
+}
     public function getPort(){
         return $this->port;
     }
@@ -35,6 +37,10 @@ class InstallateurMemcached {
             die("\033[31mERREUR: Lancez ce script avec sudo\033[0m\n");
         }
     }
+    private function detecterPHP() {
+    $this->phpVersion = shell_exec('php -r "echo PHP_MAJOR_VERSION;"');
+    echo "Version PHP détectée : {$this->phpVersion}\n";
+}
     
 
     private function detecterOS() {
@@ -119,23 +125,28 @@ private function paquetInstalle($nom, $debian = true) {
     }
 
     private function verifierInstallation() {
-        echo "\n\033[32mVérification de l'installation...\033[0m\n";
+    echo "\n\033[32mVérification de l'installation...\033[0m\n";
 
-        $m = new Memcached();
-        if (!$m->addServer('localhost', $this->port)) {
-            die("\033[31mImpossible d'ajouter le serveur Memcached\033[0m\n");
-        }
-        $m->set('test', 'OK');
-
-        echo "Test PHP: " . ($m->get('test') === 'OK' ? "\033[32mSUCCÈS\033[0m" : "\033[31mÉCHEC\033[0m") . "\n";
-
-        echo "Test serveur Memcached (netcat): ";
-        system("echo stats | nc -N localhost " . $this->port . " | grep uptime");
+    $m = new Memcached();
+    if (!$m->addServer('localhost', $this->port)) {
+        die("\033[31mImpossible d'ajouter le serveur Memcached\033[0m\n");
     }
-    private function detecterPHP() {
-        $this->phpVersion = shell_exec('php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;"');
-        echo "Version PHP détectée : {$this->phpVersion}\n";
+    
+    $m->set('test', 'OK', 10);
+    $result = $m->get('test');
+
+    echo "Test PHP: " . ($result === 'OK' ? "\033[32mSUCCÈS\033[0m" : "\033[31mÉCHEC\033[0m") . "\n";
+    echo "Détail: " . ($result === 'OK' ? "Connexion fonctionnelle" : "Erreur: " . $m->getResultMessage()) . "\n";
+
+    echo "Test serveur Memcached (netcat): ";
+    system("echo stats | nc -w 1 localhost " . $this->port . " 2>/dev/null | grep uptime");
+}
+    private function verifierExtensionPHP() {
+    if (!extension_loaded('memcached')) {
+        die("\033[31mERREUR: L'extension PHP Memcached n'est pas chargée!\n"
+          . "Essayez: sudo phpenmod memcached && sudo systemctl restart apache2/php-fpm\033[0m\n");
     }
+}
 
     
 
@@ -168,24 +179,24 @@ private function paquetInstalle($nom, $debian = true) {
     }
 
     private function installerExtensionPHP() {
-        echo "Installation de l'extension PHP Memcached...\n";
+    echo "Installation de l'extension PHP Memcached...\n";
 
-        if ($this->os === 'debian') {
-            $pkgName = 'php-memcached';
-            if ((int)$this->phpVersion >= 80) {
-                $pkgName = 'php8.0-memcached'; // Adaptez selon votre version
-            }
-            
-            if (!$this->paquetInstalle($pkgName)) {
-                shell_exec("apt-get install -y $pkgName");
-            }
-        } else {
-            shell_exec('yum install -y php-pecl-memcached');
+    if ($this->os === 'debian') {
+        $pkgName = 'php-memcached';
+        if ($this->phpVersion >= 8) {
+            $pkgName = "php{$this->phpVersion}-memcached";
         }
-
-        // Redémarrer le service web
-        $this->redemarrerServiceWeb();
+        
+        if (!$this->paquetInstalle($pkgName)) {
+            shell_exec("apt-get install -y $pkgName");
+        }
+    } else {
+        shell_exec('yum install -y php-pecl-memcached');
     }
+
+    $this->redemarrerServiceWeb();
+}
+
 
     private function redemarrerServiceWeb() {
         echo "Redémarrage du service web...\n";
