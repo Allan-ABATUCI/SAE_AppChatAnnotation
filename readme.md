@@ -12,7 +12,7 @@
 #### 2. **Dépendances Composer**
 
 - Installe [Composer](https://getcomposer.org/download/).
-- Installe les dépendances avec :
+- Pour être sur d'avaoir les dépendances :
   ```bash
   composer install
   ```
@@ -28,7 +28,7 @@
   $mdp = 'laflemme';
   ```
 - Crée la base de données via :
-  - En étant connecté  à **MySQL/PostgreSQL** :
+  - En étant connecté à **MySQL/PostgreSQL** :
     ```sql
     \i src/App/Utils/sae.sql
     ```
@@ -47,12 +47,13 @@
   ```bash
   php bin/start.php  # ou ./start.php selon l'emplacement
   ```
+
 #### 6. **Memcached**
 
 - Le server web et websocket partage les données de session par memcached
-  -
+  - ⚠️ Important le scipt change des configuration d'apache
   - Il y a un script `install.sh` qui permet d'installer et configurer memcached et l'extension php-memcached
-  - Faire  `chmod +x install.sh` pour ensuite le lancer `sudo ./install.sh`
+  - Faire `chmod +x install.sh` pour ensuite le lancer `sudo ./install.sh`
   - Si problème regarde le fichier et improvise.
 
 ### Developpement
