@@ -41,9 +41,9 @@
   http://localhost:3000
   ```
 
-#### 5. **WebSocket (optionnel)**
+#### 5. **WebSocket **
 
-- Lance le serveur WebSocket avec :
+- Lance le serveur WebSocket pour pouvoir envoyer les messages avec :
   ```bash
   php bin/start.php  # ou ./start.php selon l'emplacement
   ```
