@@ -3,7 +3,7 @@
 #### 1. **Serveur Web**
 
 - Installe un serveur web (Apache/Nginx) ou utilise un outil comme XAMPP.
-- Si tu utilises PHP embarqué :
+- Tu peux utilisé le server web de développement de PHP:
   ```bash
   php -S localhost:3000 -t ~/racineprojet  # Met le dossier racine du projet où est index.php
   ```
