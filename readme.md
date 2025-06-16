@@ -41,12 +41,19 @@
   http://localhost:3000
   ```
 
-#### 5. **WebSocket **
+#### 5. **WebSocket**
 
 - Lance le serveur WebSocket pour pouvoir envoyer les messages avec :
   ```bash
   php bin/start.php  # ou ./start.php selon l'emplacement
   ```
+#### 6. **Memcached**
+
+- Le server web et websocket partage les données de session par memcached
+  -
+  - Il y a un script `install.sh` qui permet d'installer et configurer memcached et l'extension php-memcached
+  - Faire  `chmod +x install.sh` pour ensuite le lancer `sudo ./install.sh`
+  - Si problème regarde le fichier et improvise.
 
 ### Developpement
 
