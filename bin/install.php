@@ -91,23 +91,25 @@ private function paquetInstalle($nom, $debian = true) {
     }
 
     private function configurerMemcached() {
-        echo "Configuration de Memcached...\n";
-        $fichier = '/etc/memcached.conf';
+    echo "Configuration de Memcached...\n";
+    $fichier = '/etc/memcached.conf';
 
-        // Sauvegarde de l’ancienne configuration
-        if (file_exists($fichier)) {
-            copy($fichier, $fichier . '.backup-' . date('YmdHis'));
-        }
-
-        $config = sprintf(
-            "-l 127.0.0.1\n-p %d\n-m %d\n-I %dm\n",
-            $this->port,
-            $this->memoire,
-            $this->tailleObjet
-        );
-
-        file_put_contents($fichier, $config);
+    if (file_exists($fichier)) {
+        copy($fichier, $fichier . '.backup-' . date('YmdHis'));
     }
+
+    $config = sprintf(
+        "-l 127.0.0.1\n-p %d\n-m %d\n-I %dm\n-vv\n",  // Ajout de -vv pour les logs détaillés
+        $this->port,
+        $this->memoire,
+        $this->tailleObjet
+    );
+
+    file_put_contents($fichier, $config);
+    
+    // S'assurer que les permissions sont correctes
+    chmod($fichier, 0644);
+}
 
     private function demarrerService() {
         echo "Démarrage du service Memcached...\n";
@@ -127,19 +129,64 @@ private function paquetInstalle($nom, $debian = true) {
     private function verifierInstallation() {
     echo "\n\033[32mVérification de l'installation...\033[0m\n";
 
+    // Test de base de connexion
+    $this->verifierConnexionMemcached();
+
+    // Test plus approfondi
+    $this->effectuerTestComplet();
+}
+
+private function verifierConnexionMemcached() {
+    echo "Vérification de la connexion Memcached...\n";
+    
+    $output = shell_exec("nc -zv localhost ".$this->port." 2>&1");
+    if (strpos($output, 'succeeded') !== false) {
+        echo "\033[32mConnexion TCP fonctionnelle\033[0m\n";
+    } else {
+        echo "\033[31mÉchec de connexion TCP: $output\033[0m\n";
+        die("Veuillez vérifier que Memcached est bien démarré");
+    }
+}
+
+private function effectuerTestComplet() {
     $m = new Memcached();
+    $m->setOption(Memcached::OPT_CONNECT_TIMEOUT, 1000);
+    $m->setOption(Memcached::OPT_RETRY_TIMEOUT, 1000);
+    
     if (!$m->addServer('localhost', $this->port)) {
-        die("\033[31mImpossible d'ajouter le serveur Memcached\033[0m\n");
+        die("\033[31mÉchec d'ajout du serveur: ".$m->getResultMessage()."\033[0m\n");
+    }
+
+    $m->set('test_key', 'test_value', 10);
+    $result = $m->get('test_key');
+
+    if ($result === 'test_value') {
+        echo "\033[32mTest PHP réussi\033[0m\n";
+    } else {
+        echo "\033[31mÉchec du test PHP: ".$m->getResultMessage()."\033[0m\n";
+    }
+
+    // Test stats avec solution de repli
+    echo "Statistiques serveur: ";
+    $this->obtenirStatsServeur();
+}
+
+private function obtenirStatsServeur() {
+    $commands = [
+        "nc -w 1 localhost ".$this->port." 2>/dev/null <<< stats",
+        "telnet localhost ".$this->port." 2>/dev/null <<< stats",
+        "echo stats | nc -w 1 localhost ".$this->port
+    ];
+
+    foreach ($commands as $cmd) {
+        $output = shell_exec($cmd);
+        if (!empty($output) && strpos($output, 'uptime') !== false) {
+            echo "\033[32mOK\033[0m (uptime: ".trim(explode(' ', $output)[2]."s)\n");
+            return;
+        }
     }
     
-    $m->set('test', 'OK', 10);
-    $result = $m->get('test');
-
-    echo "Test PHP: " . ($result === 'OK' ? "\033[32mSUCCÈS\033[0m" : "\033[31mÉCHEC\033[0m") . "\n";
-    echo "Détail: " . ($result === 'OK' ? "Connexion fonctionnelle" : "Erreur: " . $m->getResultMessage()) . "\n";
-
-    echo "Test serveur Memcached (netcat): ";
-    system("echo stats | nc -w 1 localhost " . $this->port . " 2>/dev/null | grep uptime");
+    echo "\033[31mÉchec\033[0m (impossible d'obtenir les stats)\n";
 }
     private function verifierExtensionPHP() {
     if (!extension_loaded('memcached')) {
