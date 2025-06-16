@@ -95,14 +95,12 @@ class Model
      * Récupère un utilisateur par email et mot de passe hashé
      * 
      * @param string $email Email de l'utilisateur
-     * @param string $mdp Mot de passe hashé
      * @return array|false Tableau associatif des données utilisateur ou false si non trouvé
      */
-    public function getUser($email, $mdp)
+    public function getUser($email)
     {
-        $req = $this->bd->prepare("SELECT * FROM Users WHERE email = :email AND password_hash = :hashedPassword");
+        $req = $this->bd->prepare("SELECT * FROM Users WHERE email = :email");
         $req->bindValue(':email', $email, PDO::PARAM_STR);
-        $req->bindValue(':hashedPassword', $mdp, PDO::PARAM_STR);
         $req->execute();
         return $req->fetch(PDO::FETCH_ASSOC);
     }

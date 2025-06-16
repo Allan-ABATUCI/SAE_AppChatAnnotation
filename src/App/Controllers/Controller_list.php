@@ -15,12 +15,9 @@ class Controller_list extends Controller
             $bd = Model::getModel();
             $last = [];
             $cont = $bd->getOnlineUsers();
-            foreach ($cont as $c => $row) {
-                $last[] = $bd->getLastMesage($_SESSION['id'], $row['sender_id']);
-            }
+            
             $data = [
                 'contacts' => $cont,
-                'lastm' => $last,
             ];
             $this->render("contact", $data);
 
@@ -28,5 +25,6 @@ class Controller_list extends Controller
             //dire l'erreur et reco #flm
         }
     }
+    
 
 }

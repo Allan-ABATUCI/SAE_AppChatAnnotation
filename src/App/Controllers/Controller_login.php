@@ -16,25 +16,25 @@ class Controller_login extends Controller
 
         $this->render('login');
     }
-    public function action_login()
-    {
-        if (isset($_POST['submit_login'])) {
-            $bd = Model::getModel();
-            $email = e($_POST['email']);
-            $mdp = password_hash($_POST['mdp'], PASSWORD_DEFAULT);
+public function action_login()
+{
+    if (isset($_POST['submit_login'])) {
+        $bd = Model::getModel();
+        $email = e($_POST['email']);
+        $mdp = e($_POST['mdp']); 
+        $user=($bd->UserExists($email))?$bd->getUser($email):false;
+        if ($user && password_verify($mdp, $user['password_hash'])) {
+            $_SESSION['email'] = $email;
+            $_SESSION['id'] = $user['user_id'];
 
-            if ($bd->UserExists($email, $mdp)) {
-                $_SESSION['email'] = $email;
-                $_SESSION['id'] = $bd->getUser($email, $mdp)['user_id'];
-                
-
-                $this->render('contact');
-            } else {
-                $message = "Mauvais identifiant ou mot de passe";
-                echo $message;
-            }
+            header('Location: ?controller=list');
+            exit();
+        } else {
+            $message = "Mauvais identifiant ou mot de passe";
+            echo $message;
         }
     }
+}
     public function action_form_register()
     {
         $this->render('register');
@@ -44,7 +44,10 @@ class Controller_login extends Controller
         if (isset($_POST['submit_registration'])) {
             $username = e($_POST['prenom']) . ' ' . e($_POST['nom']);
             $email = e($_POST['email']);
-            $mdp = password_hash($_POST['mdp'], PASSWORD_DEFAULT);
+            if (!preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
+                echo "email invalide";
+            }
+            $mdp = password_hash(e($_POST['mdp']), PASSWORD_DEFAULT);
             $bd = Model::getModel();
 
             if (!$bd->UserExists($email)) {
