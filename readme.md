@@ -5,7 +5,7 @@
 - Installe un serveur web (Apache/Nginx) ou utilise un outil comme XAMPP.
 - Si tu utilises PHP embarqué :
   ```bash
-  php -S localhost:3000 -t ~/racineprojet  # Assure-toi d'être dans le dossier racine du projet
+  php -S localhost:3000 -t ~/racineprojet  # Met le dossier racine du projet où est index.php
   ```
 - Avec XAMPP : place le projet dans le dossier `htdocs`.
 
