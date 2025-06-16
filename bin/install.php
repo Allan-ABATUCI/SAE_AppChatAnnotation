@@ -198,7 +198,7 @@ private function obtenirStatsServeur() {
           . "Essayez manuellement:\n"
           . "1. sudo apt install php{$this->phpVersion}-memcached\n"
           . "2. sudo phpenmod memcached\n"
-          . "3. sudo systemctl restart apache2/php-fpm\033[0m\n");
+          . "3. sudo systemctl restart apache2\033[0m\n");
     }
     echo "\033[32mExtension PHP Memcached active\033[0m\n";
 }
