@@ -28,7 +28,7 @@
   $mdp = 'laflemme';
   ```
 - Crée la base de données via :
-  - **MySQL/PostgreSQL** :
+  - En étant connecté  à **MySQL/PostgreSQL** :
     ```sql
     \i src/App/Utils/sae.sql
     ```
