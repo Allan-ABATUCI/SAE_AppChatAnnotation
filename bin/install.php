@@ -190,10 +190,17 @@ private function obtenirStatsServeur() {
     echo "\033[31mÉchec\033[0m (impossible d'obtenir les stats)\n";
 }
     private function verifierExtensionPHP() {
-    if (!extension_loaded('memcached')) {
-        die("\033[31mERREUR: L'extension PHP Memcached n'est pas chargée!\n"
-          . "Essayez: sudo phpenmod memcached && sudo systemctl restart apache2/php-fpm\033[0m\n");
+    echo "Vérification de l'extension PHP...\n";
+    
+    $output = shell_exec('php -m | grep memcached');
+    if (empty($output)) {
+        die("\033[31mERREUR: L'extension memcached n'est pas chargée dans PHP.\n"
+          . "Essayez manuellement:\n"
+          . "1. sudo apt install php{$this->phpVersion}-memcached\n"
+          . "2. sudo phpenmod memcached\n"
+          . "3. sudo systemctl restart apache2/php-fpm\033[0m\n");
     }
+    echo "\033[32mExtension PHP Memcached active\033[0m\n";
 }
 
     
