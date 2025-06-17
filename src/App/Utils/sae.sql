@@ -60,3 +60,12 @@ CREATE TABLE Annotation (
     FOREIGN KEY (annotator_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     UNIQUE (message_id, annotator_id)
 );
+CREATE TABLE Reactions (
+    reaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    message_id INT NOT NULL,
+    user_id INT NOT NULL,
+    emoji VARCHAR(10) NOT NULL,
+    UNIQUE(message_id, user_id),
+    FOREIGN KEY (message_id) REFERENCES Message(message_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
