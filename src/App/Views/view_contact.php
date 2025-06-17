@@ -7,18 +7,19 @@
 </header>
 <main>
     <div class="contacts">
-        <div class="search-bar">
-            <input type="text" placeholder="Rechercher un contact...">
-        </div>
+        
+       
         <ul class="contact-list">
             <?php foreach ($contacts as $c => $row): ?>
-                <li class="contact-item">
+                <?php if($row['user_id']!=$_SESSION['id']) :?>
+                <li class="contact-item" onclick="postToChat(<?= $row['user_id'] ?>)">
                     <div class="contact-info">
-                        <div class="contact-name"><?php echo $row['username'] ?? '' ?></div>
-                        <div class="last-message"><?php echo $row['lastmessage'][$c]['content'] ?? '' ?></div>
+                        <a class="contact-name" href="?controller=chat">
+                        <?= htmlspecialchars($row['username']) ?>
+                    </a>
                     </div>
-                    <div class="timestamp"><?php echo $row['lastmessage'][$c]['created_at'] ?? '' ?></div>
                 </li>
+                <?php endif?>
             <?php endforeach; ?>
         </ul>
     </div>

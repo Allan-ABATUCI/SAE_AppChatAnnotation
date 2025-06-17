@@ -1,57 +1,14 @@
 <!DOCTYPE html>
-<html>
-
 <head>
     <title>Chat Annoté</title>
     <style>
-        #chat-container {
-            width: 400px;
-            margin: 0 auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-
-        #message-area {
-            height: 300px;
-            overflow-y: scroll;
-            border: 1px solid #eee;
-            padding: 5px;
-            margin-bottom: 10px;
-        }
-
-        .message {
-            margin-bottom: 5px;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .message.mine {
-            background-color: #e0f2f7;
-            /* Bleu clair */
-            text-align: right;
-        }
-
-        .message.other {
-            background-color: #f0f0f0;
-            /* Gris clair */
-            text-align: left;
-        }
-
-        #input-area {
-            display: flex;
-            flex-direction: column;
-        }
-
-        #emotion-buttons {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 5px;
-        }
+        /* [Vos styles CSS existants restent identiques] */
     </style>
 </head>
 
 <body>
     <div id="chat-container">
+        <div id="recipient-info"></div>
         <div id="message-area"></div>
         <div id="input-area">
             <textarea id="message-input" placeholder="Écrivez votre message..."></textarea>
@@ -63,65 +20,142 @@
             <button id="send-button">Envoyer</button>
         </div>
     </div>
+
     <script>
+        // Éléments de l'interface
         const messageArea = document.getElementById('message-area');
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
         const emotionButtons = document.getElementById('emotion-buttons').querySelectorAll('button');
+        const recipientInfo = document.getElementById('recipient-info');
+        
+        // Variables d'état
         let selectedEmotion = null;
+        let conn;
+        let currentRecipientId = null;
+        let currentUserId = "<?php echo $_SESSION['user']['id'] ?? ''; ?>";
 
-        emotionButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                selectedEmotion = button.dataset.emotion;
-            });
-        });
-
-        sendButton.addEventListener('click', () => {
-            const messageText = messageInput.value;
-            if (messageText.trim() === "" || selectedEmotion == null) return;
-
-            displayMessage(messageText, "mine", selectedEmotion);
-            messageInput.value = '';
-            selectedEmotion = null;
-        });
-
-        function displayMessage(message, sender, emotion) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            messageDiv.classList.add(sender);
-            messageDiv.textContent = message + " (" + emotion + ")";
-            messageArea.appendChild(messageDiv);
-            messageArea.scrollTop = messageArea.scrollHeight;
-        }
-    </script>
-    <script>
-        // Vérifier si la page a reçu l'ID du destinataire via GET
+        // Initialisation du chat
         window.onload = function() {
-            // Récupérer l'ID du destinataire depuis une variable GET (présumée envoyée du backend)
-            const recipientId = "<?php echo $dest; ?>";
-
-            // Afficher l'ID du destinataire sur la page
-            if (recipientId) {
-                document.getElementById("recipientInfo").textContent = "ID du destinataire : " + recipientId;
-                initiateWebSocket(recipientId); // Initier la connexion WebSocket avec l'ID du destinataire
+            currentRecipientId = "<?php echo $_GET['user_id'] ?? ''; ?>";
+            
+            if (currentRecipientId) {
+                recipientInfo.textContent = "Discussion avec l'utilisateur ID: " + currentRecipientId;
+                initierWebSocket();
             } else {
-                document.getElementById("recipientInfo").textContent = "Aucun ID de destinataire fourni.";
+                recipientInfo.textContent = "Aucun ID de destinataire spécifié.";
             }
         };
 
-        var conn;
+        // Gestion des boutons d'émotion
+        emotionButtons.forEach(bouton => {
+            bouton.addEventListener('click', () => {
+                emotionButtons.forEach(btn => btn.classList.remove('selected'));
+                bouton.classList.add('selected');
+                selectedEmotion = bouton.dataset.emotion;
+            });
+        });
 
-        // Fonction pour initier la connexion WebSocket avec l'ID du destinataire
-        function initiateWebSocket(recipientId) {
-            conn = new WebSocket('ws://localhost:8081/chat?userId=<?php echo $_SESSION['id'] ?? '' ?>' + '&dest=' + recipientId); // Ouvrir la connexion WebSocket avec l'ID utilisateur
+        // Envoi du message
+        sendButton.addEventListener('click', envoyerMessage);
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                envoyerMessage();
+            }
+        });
 
+        async function envoyerMessage() {
+            const texteMessage = messageInput.value.trim();
+            if (texteMessage === "" || selectedEmotion == null) {
+                alert("Veuillez écrire un message et sélectionner une émotion");
+                return;
+            }
+
+            // Afficher le message localement
+            afficherMessage(texteMessage, "mine", selectedEmotion, 'Vous', new Date());
+            
+            // 1. Envoyer via WebSocket pour le chat en temps réel
+            if (conn && conn.readyState === WebSocket.OPEN) {
+                const donneesMessage = {
+                    content: texteMessage,
+                    recipient: currentRecipientId
+                    // Note: L'émotion n'est pas envoyée via WS si votre serveur ne la gère pas
+                };
+                conn.send(JSON.stringify(donneesMessage));
+            }
+
+            // 2. Sauvegarder dans la base de données via AJAX
+            try {
+                const response = await fetch('?controller=chat&action=save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        sender_id: currentUserId,
+                        recipient_id: currentRecipientId,
+                        content: texteMessage,
+                        emotion: selectedEmotion
+                    })
+                });
+
+                if (!response.ok) {
+                    console.error("Erreur lors de la sauvegarde du message");
+                }
+            } catch (error) {
+                console.error("Erreur AJAX:", error);
+            }
+
+            // Réinitialiser le champ de saisie
+            messageInput.value = '';
+            emotionButtons.forEach(btn => btn.classList.remove('selected'));
+            selectedEmotion = null;
+        }
+
+        function afficherMessage(message, expediteur, emotion, nomExpediteur, date) {
+            const divMessage = document.createElement('div');
+            divMessage.classList.add('message');
+            divMessage.classList.add(expediteur);
+            
+            const divInfos = document.createElement('div');
+            divInfos.classList.add('message-info');
+            divInfos.textContent = `${nomExpediteur} - ${date.toLocaleTimeString()}`;
+            
+            const divContenu = document.createElement('div');
+            divContenu.textContent = `${message} (${emotion})`;
+            
+            divMessage.appendChild(divInfos);
+            divMessage.appendChild(divContenu);
+            messageArea.appendChild(divMessage);
+            messageArea.scrollTop = messageArea.scrollHeight;
+        }
+
+        function initierWebSocket() {
+            conn = new WebSocket('ws://' + window.location.hostname + ':8080');
+            
             conn.onopen = function(e) {
                 console.log("Connexion WebSocket établie !");
             };
 
             conn.onmessage = function(e) {
-                console.log("Message reçu : " + e.data);
-                document.getElementById("log").value += e.data + '\n'; // Ajouter le message reçu au journal
+                try {
+                    const donnees = JSON.parse(e.data);
+                    console.log("Message reçu:", donnees);
+                    
+                    if (donnees.content && donnees.sender) {
+                        afficherMessage(
+                            donnees.content, 
+                            "other", 
+                            'aucune', // Ou récupérer l'émotion si envoyée par le serveur
+                            donnees.senderName || 'Inconnu', 
+                            new Date()
+                        );
+                    }
+                } catch (erreur) {
+                    console.error("Erreur d'analyse du message:", erreur);
+                }
             };
 
             conn.onerror = function(e) {
@@ -132,26 +166,6 @@
                 console.log("Connexion WebSocket fermée.");
             };
         }
-
-        // Fonction pour envoyer un message au destinataire
-        function sendMessage() {
-            const message = document.getElementById("message").value; // Récupérer le message saisi
-
-            // Si le message n'est pas vide
-            if (message.trim() !== "") {
-                const messageData = {
-                    dest: "<?php echo $dest; ?>", // Récupérer l'ID du destinataire depuis PHP (GET)
-                    message: message
-                };
-
-                // Envoyer le message via la connexion WebSocket
-                conn.send(JSON.stringify(messageData));
-
-                // Optionnellement, vider le champ après l'envoi du message
-                document.getElementById("message").value = '';
-            }
-        }
     </script>
 </body>
-
 </html>

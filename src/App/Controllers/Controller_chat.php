@@ -17,12 +17,13 @@ class Controller_chat extends Controller
     {
         $this->render('chat');
     }
-    public function action_message()
+    public function action_save(): void
     {
-        $msg = $_POST['msg'] ?? '';
-        $sender = $_SESSION['id'] ?? '';
-
-        if (preg_match('/^\S+$/', $msg)) {
+        $bd=Model::getModel();
+        $msg = $_POST['msg'] ?? false;
+        $sender = $_SESSION['id'] ?? false;
+        if ($msg && $sender && preg_match('/^\S+$/', $msg)) {
+            insertMessageWithEmotion();
         }
     }
-}
+} 

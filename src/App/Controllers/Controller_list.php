@@ -11,9 +11,9 @@ class Controller_list extends Controller
     }
     function action_contact()
     {
+        session_start();
         if ($_SESSION['id']) {
             $bd = Model::getModel();
-            $last = [];
             $cont = $bd->getOnlineUsers();
             
             $data = [
@@ -22,7 +22,7 @@ class Controller_list extends Controller
             $this->render("contact", $data);
 
         } else {
-            //dire l'erreur et reco #flm
+            $this->render("login");
         }
     }
     
