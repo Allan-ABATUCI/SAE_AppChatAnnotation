@@ -124,7 +124,17 @@
             divInfos.textContent = `${nomExpediteur} - ${date.toLocaleTimeString()}`;
             
             const divContenu = document.createElement('div');
-            divContenu.textContent = `${message} (${emotion})`;
+            divContenu.innerHTML = `
+    <p>${message} (${emotion})</p>
+    <div class="reactions">
+        <button class="emoji-btn" data-emoji="❤️">❤️</button>
+        <button class="emoji-btn" data-emoji="😂">😂</button>
+        <button class="emoji-btn" data-emoji="👍">👍</button>
+        <button class="emoji-btn" data-emoji="😡">😡</button>
+        <div class="current-reactions" id="reaction-${Date.now()}"></div>
+    </div>
+`;
+
             
             divMessage.appendChild(divInfos);
             divMessage.appendChild(divContenu);
