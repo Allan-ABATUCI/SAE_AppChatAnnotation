@@ -1,171 +1,99 @@
-<html>
-<head>
-    <title>Chat Annoté</title>
-    <style>
-        /* [Vos styles CSS existants restent identiques] */
-    </style>
-</head>
+<?
+namespace websocket;
 
-<body>
-    <div id="chat-container">
-        <div id="recipient-info"></div>
-        <div id="message-area"></div>
-        <div id="input-area">
-            <textarea id="message-input" placeholder="Écrivez votre message..."></textarea>
-            <div id="emotion-buttons">
-                <button data-emotion="joie">Joie</button>
-                <button data-emotion="colère">Colère</button>
-                <button data-emotion="tristesse">Tristesse</button>
-            </div>
-            <button id="send-button">Envoyer</button>
-        </div>
-    </div>
+use Ratchet\MessageComponentInterface;
+use Ratchet\ConnectionInterface;
 
-    <script>
-        // Éléments de l'interface
-        const messageArea = document.getElementById('message-area');
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
-        const emotionButtons = document.getElementById('emotion-buttons').querySelectorAll('button');
-        const recipientInfo = document.getElementById('recipient-info');
+class Chat implements MessageComponentInterface 
+{
+    protected $clients;
+    protected $connexionsUtilisateurs;
+
+    public function __construct() 
+    {
+        $this->clients = new \SplObjectStorage;
+        $this->connexionsUtilisateurs = [];
+    }
+
+    public function onOpen(ConnectionInterface $connexion) 
+    {
+        // Get session data
+        $session = $connexion->Session;
+        $userData = $session->get('user');
+
+        // Verify authentication
+        if (!$userData || !isset($userData['id'])) {
+            $connexion->close();
+            return;
+        }
+
+        $userId = $userData['id'];
+        $username = $userData['username'] ?? 'Anonymous';
+
+        // Store connection with user metadata
+        $this->clients->attach($connexion, [
+            'userId' => $userId,
+            'username' => $username
+        ]);
+
+        // Register for quick access
+        $this->connexionsUtilisateurs[$userId] = $connexion;
+
+        echo "User {$username} ({$userId}) connected\n";
+    }
+
+    public function onMessage(ConnectionInterface $expediteur, $message) 
+    {
+        $message = json_decode($message, true);
         
-        // Variables d'état
-        let selectedEmotion = null;
-        let conn;
-        let currentRecipientId = null;
-        let currentUserId = "<?php echo $_SESSION['user']['id'] ?? ''; ?>";
-
-        // Initialisation du chat
-        window.onload = function() {
-            currentRecipientId = "<?php echo $_GET['user_id'] ?? ''; ?>";
-            
-            if (currentRecipientId) {
-                recipientInfo.textContent = "Discussion avec l'utilisateur ID: " + currentRecipientId;
-                initierWebSocket();
-            } else {
-                recipientInfo.textContent = "Aucun ID de destinataire spécifié.";
-            }
-        };
-
-        // Gestion des boutons d'émotion
-        emotionButtons.forEach(bouton => {
-            bouton.addEventListener('click', () => {
-                emotionButtons.forEach(btn => btn.classList.remove('selected'));
-                bouton.classList.add('selected');
-                selectedEmotion = bouton.dataset.emotion;
-            });
-        });
-
-        // Envoi du message
-        sendButton.addEventListener('click', envoyerMessage);
-        
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                envoyerMessage();
-            }
-        });
-
-        async function envoyerMessage() {
-            const texteMessage = messageInput.value.trim();
-            if (texteMessage === "" || selectedEmotion == null) {
-                alert("Veuillez écrire un message et sélectionner une émotion");
-                return;
-            }
-
-            // Afficher le message localement
-            afficherMessage(texteMessage, "mine", selectedEmotion, 'Vous', new Date());
-            
-            // 1. Envoyer via WebSocket pour le chat en temps réel
-            if (conn && conn.readyState === WebSocket.OPEN) {
-                const donneesMessage = {
-                    content: texteMessage,
-                    recipient: currentRecipientId
-                    // Note: L'émotion n'est pas envoyée via WS si votre serveur ne la gère pas
-                };
-                conn.send(JSON.stringify(donneesMessage));
-            }
-
-            // 2. Sauvegarder dans la base de données via AJAX
-            try {
-                const response = await fetch('?controller=chat&action=save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        sender_id: currentUserId,
-                        recipient_id: currentRecipientId,
-                        content: texteMessage,
-                        emotion: selectedEmotion
-                    })
-                });
-
-                if (!response.ok) {
-                    console.error("Erreur lors de la sauvegarde du message");
-                }
-            } catch (error) {
-                console.error("Erreur AJAX:", error);
-            }
-
-            // Réinitialiser le champ de saisie
-            messageInput.value = '';
-            emotionButtons.forEach(btn => btn.classList.remove('selected'));
-            selectedEmotion = null;
+        if (!$message || !isset($message['content'])) {
+            return;
         }
 
-        function afficherMessage(message, expediteur, emotion, nomExpediteur, date) {
-            const divMessage = document.createElement('div');
-            divMessage.classList.add('message');
-            divMessage.classList.add(expediteur);
-            
-            const divInfos = document.createElement('div');
-            divInfos.classList.add('message-info');
-            divInfos.textContent = `${nomExpediteur} - ${date.toLocaleTimeString()}`;
-            
-            const divContenu = document.createElement('div');
-            divContenu.textContent = `${message} (${emotion})`;
-            
-            divMessage.appendChild(divInfos);
-            divMessage.appendChild(divContenu);
-            messageArea.appendChild(divMessage);
-            messageArea.scrollTop = messageArea.scrollHeight;
+        // Get sender info from session
+        $senderSession = $expediteur->Session;
+        $senderData = $senderSession->get('user');
+        $senderId = $senderData['id'];
+        $senderName = $senderData['username'];
+
+        // Get recipient ID from message
+        $recipientId = $message['recipient'] ?? null;
+
+        if (!$recipientId) {
+            return;
         }
 
-        function initierWebSocket() {
-            conn = new WebSocket('ws://' + window.location.hostname + ':8080');
-            
-            conn.onopen = function(e) {
-                console.log("Connexion WebSocket établie !");
-            };
+        echo "Message from {$senderName} to {$recipientId}: {$message['content']}\n";
 
-            conn.onmessage = function(e) {
-                try {
-                    const donnees = JSON.parse(e.data);
-                    console.log("Message reçu:", donnees);
-                    
-                    if (donnees.content && donnees.sender) {
-                        afficherMessage(
-                            donnees.content, 
-                            "other", 
-                            'aucune', // Ou récupérer l'émotion si envoyée par le serveur
-                            donnees.senderName || 'Inconnu', 
-                            new Date()
-                        );
-                    }
-                } catch (erreur) {
-                    console.error("Erreur d'analyse du message:", erreur);
-                }
-            };
-
-            conn.onerror = function(e) {
-                console.error("Erreur WebSocket :", e);
-            };
-
-            conn.onclose = function(e) {
-                console.log("Connexion WebSocket fermée.");
-            };
+        // Send to recipient if connected
+        if (isset($this->connexionsUtilisateurs[$recipientId])) {
+            $recipientConn = $this->connexionsUtilisateurs[$recipientId];
+            $recipientConn->send(json_encode([
+                'content' => $message['content'],
+                'sender' => $senderId,
+                'senderName' => $senderName,
+                'timestamp' => time()
+            ]));
+        } else {
+            echo "User {$recipientId} is offline\n";
+            // Option: Store message in database for later delivery
         }
-    </script>
-</body>
-</html>
+    }
+
+    public function onClose(ConnectionInterface $connexion) 
+    {
+        $infos = $this->clients[$connexion];
+        $userId = $infos['userId'];
+
+        unset($this->connexionsUtilisateurs[$userId]);
+        $this->clients->detach($connexion);
+
+        echo "User {$userId} disconnected\n";
+    }
+
+    public function onError(ConnectionInterface $connexion, \Exception $e) 
+    {
+        echo "Error: {$e->getMessage()}\n";
+        $connexion->close();
+    }
+}
