@@ -273,4 +273,59 @@ public function insertMessageWithEmotion($sender_id, $user2_id, $message, $emoti
         return false;
     }
 }
+     /**
+     * Ajoute ou met à jour une réaction d'utilisateur à un message
+     *
+     * @param int $userId
+     * @param int $messageId
+     * @param string $emoji
+     * @return bool
+     */
+    public function addReactionToMessage($userId, $messageId, $emoji)
+    {
+        try {
+            $req = $this->bd->prepare("
+                INSERT INTO Reaction (user_id, message_id, emoji)
+                VALUES (:user_id, :message_id, :emoji)
+                ON DUPLICATE KEY UPDATE emoji = :emoji
+            ");
+            $req->bindValue(':user_id', $userId, PDO::PARAM_INT);
+            $req->bindValue(':message_id', $messageId, PDO::PARAM_INT);
+            $req->bindValue(':emoji', $emoji, PDO::PARAM_STR);
+            return $req->execute();
+        } catch (PDOException $e) {
+            error_log("Erreur lors de l'ajout de la réaction : " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Récupère les réactions d’un message
+     *
+     * @param int $messageId
+     * @return array
+     */
+    public function getReactionsForMessage($messageId)
+    {
+        $req = $this->bd->prepare("SELECT user_id, emoji FROM Reaction WHERE message_id = :message_id");
+        $req->bindValue(':message_id', $messageId, PDO::PARAM_INT);
+        $req->execute();
+        return $req->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Supprime une réaction d’un utilisateur pour un message donné
+     *
+     * @param int $userId
+     * @param int $messageId
+     * @return bool
+     */
+    public function removeReactionFromMessage($userId, $messageId)
+    {
+        $req = $this->bd->prepare("DELETE FROM Reaction WHERE user_id = :user_id AND message_id = :message_id");
+        $req->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $req->bindValue(':message_id', $messageId, PDO::PARAM_INT);
+        return $req->execute();
+    }
+}
 }
