@@ -98,3 +98,24 @@ function postToChat(userId) {
   document.body.appendChild(form);
   form.submit();
 }
+// === Gestion des réactions emoji ===
+document.querySelectorAll('.emoji-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const emoji = btn.dataset.emoji;
+    const messageDiv = btn.closest('.message');
+    const messageId = messageDiv.dataset.id;
+
+    const res = await fetch('index.php?controller=chat&action=react', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId, emoji })
+    });
+
+    const json = await res.json();
+    if (json.status === 'success') {
+      document.getElementById('reaction-' + messageId).textContent = emoji;
+    } else {
+      alert('Erreur : ' + json.message);
+    }
+  });
+});
