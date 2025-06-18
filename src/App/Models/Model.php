@@ -328,4 +328,4 @@ public function insertMessageWithEmotion($sender_id, $user2_id, $message, $emoti
         return $req->execute();
     }
 }
-}
+
