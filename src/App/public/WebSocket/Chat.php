@@ -3,43 +3,37 @@ namespace websocket;
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use App\Models\Model;
 
 class Chat implements MessageComponentInterface 
 {
-    protected $clients;
+
     protected $connexionsUtilisateurs;
+    private $bd;
 
     public function __construct() 
     {
-        $this->clients = new \SplObjectStorage;
+        
         $this->connexionsUtilisateurs = [];
+
     }
 
     public function onOpen(ConnectionInterface $connexion) 
     {
         // Get session data
         $session = $connexion->Session;
-        $userData = $session->get('user');
+        $userId = $session->get('id');
 
         // Verify authentication
-        if (!$userData || !isset($userData['id'])) {
+        if (!$userId || !isset($userData['id'])) {
             $connexion->close();
             return;
         }
 
-        $userId = $userData['id'];
-        $username = $userData['username'] ?? 'Anonymous';
-
-        // Store connection with user metadata
-        $this->clients->attach($connexion, [
-            'userId' => $userId,
-            'username' => $username
-        ]);
-
-        // Register for quick access
+        // enregistrer la connexion
         $this->connexionsUtilisateurs[$userId] = $connexion;
 
-        echo "User {$username} ({$userId}) connected\n";
+        echo "User {$userId} connected\n";
     }
 
     public function onMessage(ConnectionInterface $expediteur, $message) 
@@ -76,7 +70,7 @@ class Chat implements MessageComponentInterface
             ]));
         } else {
             echo "User {$recipientId} is offline\n";
-            // Option: Store message in database for later delivery
+            //peut être envoyé un message pour dire qu'il est offline
         }
     }
 

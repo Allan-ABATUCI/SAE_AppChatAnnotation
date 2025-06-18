@@ -14,26 +14,13 @@ class Server
         $memcached = new \Memcached();
         $memcached->addServer('localhost', 11211); // Connexion au serveur Memcached
         
-        $sessionHandler = new MemcachedSessionHandler($memcached, [
-            'prefix' => 'ws_sess_', // Préfixe des clés de session
-            'expiretime' => 86400   // Durée de vie des sessions (24h)
-        ]);
-
-        // 2. Options de configuration des sessions
-        $sessionOptions = [
-            'name' => 'WS_SESSION',      // Nom du cookie de session
-            'cookie_lifetime' => 86400,   // Durée de vie du cookie
-            'gc_maxlifetime' => 86400,    // Durée avant garbage collection
-            'cookie_httponly' => true,    // Cookie inaccessible en JavaScript
-            'cookie_secure' => false      // À passer à true en production avec HTTPS
-        ];
+        $sessionHandler = new MemcachedSessionHandler($memcached);
 
         // 3. Encapsulation du Chat avec le gestionnaire de sessions
         $chatHandler = new Chat();
         $handlerAvecSessions = new SessionProvider(
             $chatHandler,
-            $sessionHandler,
-            $sessionOptions
+            $sessionHandler
         );
 
         // 4. Création de l'application Ratchet

@@ -15,6 +15,7 @@ class Controller_chat extends Controller
 
     public function action_chat()
     {
+        $id__utilisateur=e($_GET["id"]);
         $this->render('chat');
     }
     public function action_save(): void
@@ -23,10 +24,10 @@ class Controller_chat extends Controller
         $msg = $_POST['msg'] ?? false;
         $sender = $_SESSION['id'] ?? false;
         if ($msg && $sender && preg_match('/^\S+$/', $msg)) {
-            insertMessageWithEmotion();
+            //insertMessageWithEmotion();
         }
     }
-     //  AJOUT : action pour gérer les réactions emoji   
+    
     public function action_react(): void
     {
         $bd = Model::getModel();

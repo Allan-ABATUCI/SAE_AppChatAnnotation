@@ -29,6 +29,3 @@ $memcachedKey = 'memc.sess.key.' . session_id();
 echo "\nMemcached data for key '$memcachedKey':\n";
 var_dump($m->get($memcachedKey));
 
-// Alternative: get all keys (may not work in all setups)
-echo "\nAll Memcached keys (may be limited):\n";
-var_dump($m->getAllKeys());

@@ -7,8 +7,6 @@
 </header>
 <main>
     <div class="contacts">
-        
-       
         <ul class="contact-list">
             <div class="search-bar">
             <input id="searchInput" type="text" placeholder="Rechercher un utilisateur...">

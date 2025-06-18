@@ -23,11 +23,13 @@ public function action_login()
         $email = e($_POST['email']);
         $mdp = e($_POST['mdp']); 
         $user=($bd->UserExists($email))?$bd->getUser($email):false;
+        
         if ($user && password_verify($mdp, $user['password_hash'])) {
             $_SESSION['email'] = $email;
             $_SESSION['id'] = $user['user_id'];
 
             header('Location: ?controller=list');
+            session_write_close();// pour que la session se sauvegarde, on peux plus écrire mais toujours lire.
             exit();
         } else {
             $message = "Mauvais identifiant ou mot de passe";

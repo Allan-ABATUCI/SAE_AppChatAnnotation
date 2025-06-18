@@ -32,7 +32,7 @@
         // Variables d'état
         let selectedEmotion = null;
         let conn;
-        let session_id = <?php echo session_id();?>
+        let session_id = <?php echo session_id();?>;
 
         // Initialisation du chat
         window.onload = function() {
@@ -135,6 +135,9 @@
             
             conn.onopen = function(e) {
                 console.log("Connexion WebSocket établie !");
+                socket.send(JSON.stringify({
+                    type: 'auth',
+                    token: session_id}));
             };
 
             conn.onmessage = function(e) {
