@@ -14,13 +14,13 @@
             <input id="searchInput" type="text" placeholder="Rechercher un utilisateur...">
             <?php foreach ($contacts as $c => $row): ?>
                 <?php if($row['user_id']!=$_SESSION['id']) :?>
-                <li class="contact-item">
-                    <div class="contact-info">
-                        <a class="contact-name" href="?controller=chat&id=<?php echo $row["user_id"]?>">
-                        <?= htmlspecialchars($row['username']) ?>
+                    <a class="contact-name" href="?controller=chat&id=<?php echo $row["user_id"]?>">
+                        <li class="contact-item">
+                            <div class="contact-info">
+                            <?= htmlspecialchars($row['username']) ?>
+                            </div>
+                        </li>
                     </a>
-                    </div>
-                </li>
                 <?php endif?>
             <?php endforeach; ?>
         </ul>
