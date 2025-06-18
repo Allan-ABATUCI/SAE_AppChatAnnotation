@@ -32,15 +32,13 @@
         // Variables d'état
         let selectedEmotion = null;
         let conn;
-        let currentRecipientId = null;
-        let currentUserId = "<?php echo $_SESSION['user']['id'] ?? ''; ?>";
+        let session_id = <?php echo session_id();?>
 
         // Initialisation du chat
         window.onload = function() {
-            currentRecipientId = "<?php echo $_GET['user_id'] ?? ''; ?>";
             
-            if (currentRecipientId) {
-                recipientInfo.textContent = "Discussion avec l'utilisateur ID: " + currentRecipientId;
+            
+            if (session_id && session_id!="") {
                 initierWebSocket();
             } else {
                 recipientInfo.textContent = "Aucun ID de destinataire spécifié.";
