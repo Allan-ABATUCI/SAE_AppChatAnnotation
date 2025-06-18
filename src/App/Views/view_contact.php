@@ -12,7 +12,7 @@
         <ul class="contact-list">
             <?php foreach ($contacts as $c => $row): ?>
                 <?php if($row['user_id']!=$_SESSION['id']) :?>
-                <li class="contact-item" onclick="postToChat(<?= $row['user_id'] ?>)">
+                <li class="contact-item">
                     <div class="contact-info">
                         <a class="contact-name" href="?controller=chat">
                         <?= htmlspecialchars($row['username']) ?>
@@ -24,5 +24,4 @@
         </ul>
     </div>
 </main>
-
 <?php require_once 'view_end.php'; ?>
