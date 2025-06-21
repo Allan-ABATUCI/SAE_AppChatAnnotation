@@ -32,13 +32,13 @@
         // Variables d'état
         let selectedEmotion = null;
         let conn;
-        let session_id = <?php echo session_id();?>;
+        let interlcuteur = <?php echo e($_GET["id"]);?>;
 
         // Initialisation du chat
         window.onload = function() {
             
             
-            if (session_id && session_id!="") {
+            if ( interlcuteur && interlcuteur!="") {
                 initierWebSocket();
             } else {
                 recipientInfo.textContent = "Aucun ID de destinataire spécifié.";
@@ -66,6 +66,7 @@
 
         async function envoyerMessage() {
             const texteMessage = messageInput.value.trim();
+
             if (texteMessage === "" || selectedEmotion == null) {
                 alert("Veuillez écrire un message et sélectionner une émotion");
                 return;
@@ -78,32 +79,10 @@
             if (conn && conn.readyState === WebSocket.OPEN) {
                 const donneesMessage = {
                     content: texteMessage,
-                    recipient: currentRecipientId
-                    // Note: L'émotion n'est pas envoyée via WS si votre serveur ne la gère pas
+                    recipient: interlcuteur
+                    // Note: L'émotion n'est pas envoyée via WS
                 };
                 conn.send(JSON.stringify(donneesMessage));
-            }
-
-            // 2. Sauvegarder dans la base de données via AJAX
-            try {
-                const response = await fetch('?controller=chat&action=save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        sender_id: currentUserId,
-                        recipient_id: currentRecipientId,
-                        content: texteMessage,
-                        emotion: selectedEmotion
-                    })
-                });
-
-                if (!response.ok) {
-                    console.error("Erreur lors de la sauvegarde du message");
-                }
-            } catch (error) {
-                console.error("Erreur AJAX:", error);
             }
 
             // Réinitialiser le champ de saisie
@@ -122,7 +101,7 @@
             divInfos.textContent = `${nomExpediteur} - ${date.toLocaleTimeString()}`;
             
             const divContenu = document.createElement('div');
-            divContenu.textContent = `${message} (${emotion})`;
+            divContenu.textContent = `${message}`;
             
             divMessage.appendChild(divInfos);
             divMessage.appendChild(divContenu);
@@ -135,9 +114,6 @@
             
             conn.onopen = function(e) {
                 console.log("Connexion WebSocket établie !");
-                socket.send(JSON.stringify({
-                    type: 'auth',
-                    token: session_id}));
             };
 
             conn.onmessage = function(e) {
@@ -149,7 +125,6 @@
                         afficherMessage(
                             donnees.content, 
                             "other", 
-                            'aucune', // Ou récupérer l'émotion si envoyée par le serveur
                             donnees.senderName || 'Inconnu', 
                             new Date()
                         );

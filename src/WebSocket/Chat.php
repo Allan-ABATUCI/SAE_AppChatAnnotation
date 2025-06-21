@@ -1,10 +1,8 @@
-<?
-namespace websocket;
-
+<?php
+namespace App\WebSocket;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
-use App\Models\Model;
-
+use Models\Model;
 class Chat implements MessageComponentInterface 
 {
 
@@ -44,7 +42,7 @@ class Chat implements MessageComponentInterface
             return;
         }
 
-        // Get sender info from session
+        // info session
         $senderSession = $expediteur->Session;
         $senderData = $senderSession->get('user');
         $senderId = $senderData['id'];
@@ -76,8 +74,8 @@ class Chat implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $connexion) 
     {
-        $infos = $this->clients[$connexion];
-        $userId = $infos['userId'];
+        
+        $userId = $connexion->Session['id'];
 
         unset($this->connexionsUtilisateurs[$userId]);
         $this->clients->detach($connexion);

@@ -4,7 +4,7 @@ ini_set('session.save_path', 'localhost:11211');
 ini_set('memcached.sess_prefix', 'memc.sess.key.');
 
 require_once 'vendor/autoload.php';
-require_once 'src/App/Utils/functions.php';
+require_once 'src/Utils/functions.php';
 session_start();
 
 
@@ -21,7 +21,7 @@ if (isset($_GET['controller']) && in_array($_GET['controller'], $controllers)) {
 }
 
 // On détermine le nom de la classe du contrôleur
-$nom_classe = 'App\Controllers\Controller_' . $nom_controller;
+$nom_classe = 'Controllers\Controller_' . $nom_controller;
 
 if (class_exists($nom_classe)) {
     new $nom_classe();

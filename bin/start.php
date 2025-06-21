@@ -1,7 +1,7 @@
 <?php
-require_once 'vendor/autoload.php';
+require_once __DIR__.'/../vendor/autoload.php';
 
-use App\public\WebSocket\Server;
 
-$server = new Server();
+$server = new  App\WebSocket\Server();
+
 $server->run();
