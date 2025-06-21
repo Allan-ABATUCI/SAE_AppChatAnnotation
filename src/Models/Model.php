@@ -36,7 +36,7 @@ class Model
      */
     private function __construct()
     {
-        include "src/App/Auth/credentials.php";
+        include "src/Auth/credentials.php";
         $this->bd = new PDO($dsn, $login, $mdp);
         $this->bd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->bd->query("SET names 'utf8'");
