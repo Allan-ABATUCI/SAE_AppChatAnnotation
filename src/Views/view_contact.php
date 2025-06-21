@@ -3,7 +3,7 @@
 <header>
     <h1>Messagerie Instantanée</h1>
     <?php require_once 'view_begin.php'; ?>
-    <link rel="stylesheet" href="src/App/Content/css/contact.css">
+    <link rel="stylesheet" href="src/Content/css/contact.css">
 </header>
 <main>
     <div class="contacts">
