@@ -41,7 +41,7 @@ abstract class Controller
         extract($data);
 
         //On teste si la vue existe
-        $file_name = "/Views/view_" . $vue . '.php';
+        $file_name = "src/Views/view_" . $vue . '.php';
         if (file_exists($file_name)) {
             //Si oui, on l'affiche
             include $file_name;

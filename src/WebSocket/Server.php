@@ -25,12 +25,12 @@ class Server
         $wsServer = new WsServer($chatComponent);
 
         // 4. Wrap the WsServer with HttpServer to handle HTTP requests (including WebSocket handshake)
-        $httpServer = new HttpServer($wsServer);
+        //$httpServer = new HttpServer($wsServer);
 
         // 5. Wrap the HttpServer with SessionProvider for session management
         // SessionProvider expects an HttpServerInterface as its first argument
         $handlerWithSessions = new SessionProvider(
-            $httpServer, // This is the change! Pass the HttpServer here.
+            $wsServer, 
             $sessionHandler
         );
 

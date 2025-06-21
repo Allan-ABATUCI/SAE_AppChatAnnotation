@@ -20,8 +20,8 @@ if (isset($_GET['controller']) && in_array($_GET['controller'], $controllers)) {
     $nom_controller = $controller_default;
 }
 
-// On détermine le nom de la classe du contrôleur
-$nom_classe = 'Controllers\Controller_' . $nom_controller;
+// On détermine le nom de la classe du contrôleur en utilisant le namespace configuré dans Composer
+$nom_classe = 'App\\Controllers\\Controller_' .$nom_controller; // Use ucfirst for consistency if controller names are lowercase in URL but uppercase in class names
 
 if (class_exists($nom_classe)) {
     new $nom_classe();

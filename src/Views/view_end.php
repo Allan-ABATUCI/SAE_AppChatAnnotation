@@ -13,7 +13,7 @@
 <!--===============================================================================================-->
 <script src="vendor/countdowntime/countdowntime.js"></script>
 <!--===============================================================================================-->
-<script src="src/App/Content/js/main.js"></script>
+<script src="src/Content/js/main.js"></script>
 
 </body>
 
