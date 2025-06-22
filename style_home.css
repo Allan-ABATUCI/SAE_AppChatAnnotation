@@ -13,6 +13,7 @@ body, html {
     overflow: hidden;
 }
 
+
 .sidebar {
     width: 80px;
     background: linear-gradient(to bottom, #f306d3, #6a11cb, #21fcff);
