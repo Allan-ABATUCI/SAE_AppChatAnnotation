@@ -110,7 +110,7 @@
         }
 
         function initierWebSocket() {
-            conn = new WebSocket('ws://' + window.location.hostname + ':8080');
+            conn = new WebSocket('ws://' + window.location.hostname + ':8081/chat');
             
             conn.onopen = function(e) {
                 console.log("Connexion WebSocket établie !");

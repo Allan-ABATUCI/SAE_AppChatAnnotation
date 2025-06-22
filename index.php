@@ -21,8 +21,7 @@ if (isset($_GET['controller']) && in_array($_GET['controller'], $controllers)) {
 }
 
 // On détermine le nom de la classe du contrôleur en utilisant le namespace configuré dans Composer
-$nom_classe = 'App\\Controllers\\Controller_' .$nom_controller; // Use ucfirst for consistency if controller names are lowercase in URL but uppercase in class names
-
+$nom_classe = 'App\\Controllers\\Controller_' .$nom_controller; 
 if (class_exists($nom_classe)) {
     new $nom_classe();
 } else {

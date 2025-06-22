@@ -1,34 +1,59 @@
 <?php
 namespace App\WebSocket;
+
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use Models\Model;
+
 class Chat implements MessageComponentInterface 
 {
-
     protected $connexionsUtilisateurs;
-    private $bd;
+    private $memcached;
 
     public function __construct() 
     {
-        
         $this->connexionsUtilisateurs = [];
-
+        $this->memcached = new \Memcached();
+        $this->memcached->addServer('localhost', 11211); // Configurez selon votre environnement
     }
 
     public function onOpen(ConnectionInterface $connexion) 
     {
-        // Get session data
-        $session = $connexion->Session;
-        $userId = $session->get('id');
+        echo "Nouvelle connexion ({$connexion->resourceId}) ouverte.\n";
 
-        // Verify authentication
-        if (!$userId || !isset($userData['id'])) {
+        // Analyser la chaîne de requête pour le jeton
+        $queryString = $connexion->httpRequest->getUri()->getQuery();
+        parse_str($queryString, $queryParameters);
+
+        if (!isset($queryParameters['token'])) {
             $connexion->close();
             return;
         }
 
-        // enregistrer la connexion
+        $authToken = $queryParameters['token'];
+
+        // 1. Récupérer l'ID de session depuis Memcached
+        $sessionId = $this->memcached->get('ws_auth_token:' . $authToken);
+        
+        if (!$sessionId) {
+            $connexion->close();
+            return;
+        }
+
+        // 2. Récupérer les données de session depuis Memcached
+        $sessionData = $this->memcached->get('session:' . $sessionId);
+        
+        if (!$sessionData || !isset($sessionData['user']['id'])) {
+            $connexion->close();
+            return;
+        }
+
+        $userId = $sessionData['user']['id'];
+
+        // Stocker les données de session dans la connexion pour un accès ultérieur
+        $connexion->sessionData = $sessionData;
+
+        // Enregistrer la connexion
         $this->connexionsUtilisateurs[$userId] = $connexion;
 
         echo "User {$userId} connected\n";
@@ -42,9 +67,12 @@ class Chat implements MessageComponentInterface
             return;
         }
 
-        // info session
-        $senderSession = $expediteur->Session;
-        $senderData = $senderSession->get('user');
+        // Récupérer les données de session depuis la connexion
+        if (!isset($expediteur->sessionData)) {
+            return;
+        }
+
+        $senderData = $expediteur->sessionData['user'];
         $senderId = $senderData['id'];
         $senderName = $senderData['username'];
 
@@ -68,19 +96,22 @@ class Chat implements MessageComponentInterface
             ]));
         } else {
             echo "User {$recipientId} is offline\n";
-            //peut être envoyé un message pour dire qu'il est offline
+            // Option: stocker le message pour une livraison ultérieure
         }
     }
 
     public function onClose(ConnectionInterface $connexion) 
     {
-        
-        $userId = $connexion->Session['id'];
+        if (!isset($connexion->sessionData)) {
+            return;
+        }
 
-        unset($this->connexionsUtilisateurs[$userId]);
-        $this->clients->detach($connexion);
+        $userId = $connexion->sessionData['user']['id'];
 
-        echo "User {$userId} disconnected\n";
+        if (isset($this->connexionsUtilisateurs[$userId])) {
+            unset($this->connexionsUtilisateurs[$userId]);
+            echo "User {$userId} disconnected\n";
+        }
     }
 
     public function onError(ConnectionInterface $connexion, \Exception $e) 

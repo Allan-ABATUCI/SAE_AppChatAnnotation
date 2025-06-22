@@ -43,10 +43,12 @@
 
 #### 5. **WebSocket**
 
+- 'chmod +x start.php'
 - Lance le serveur WebSocket pour pouvoir envoyer les messages avec :
   ```bash
-  php bin/start.php  # ou ./start.php selon l'emplacement
+  sudo php start.php  
   ```
+  
 
 #### 6. **Memcached**
 

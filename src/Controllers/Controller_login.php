@@ -27,6 +27,7 @@ public function action_login()
         if ($user && password_verify($mdp, $user['password_hash'])) {
             $_SESSION['email'] = $email;
             $_SESSION['id'] = $user['user_id'];
+            $_SESSION['user']=$user;
 
             header('Location: ?controller=list');
             session_write_close();// pour que la session se sauvegarde, on peux plus écrire mais toujours lire.
