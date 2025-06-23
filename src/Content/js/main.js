@@ -74,7 +74,7 @@ document.getElementById("searchInput").addEventListener("input", function () {
 
   contactItems.forEach((item) => {
     const contactName = item
-      .querySelector(".contact-name")
+      .querySelector(".contact-info")
       .textContent.toLowerCase();
     if (contactName.includes(filter)) {
       item.style.display = ""; // Show the item if it matches the filter
@@ -83,6 +83,7 @@ document.getElementById("searchInput").addEventListener("input", function () {
     }
   });
 });
+
 
 function postToChat(userId) {
   const form = document.createElement("form");

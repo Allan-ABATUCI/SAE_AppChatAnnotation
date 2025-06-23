@@ -22,19 +22,27 @@ public function action_login()
         $bd = Model::getModel();
         $email = e($_POST['email']);
         $mdp = e($_POST['mdp']); 
-        $user=($bd->UserExists($email))?$bd->getUser($email):false;
+        $user = $bd->UserExists($email) ? $bd->getUser($email) : false;
         
         if ($user && password_verify($mdp, $user['password_hash'])) {
+            // Standard PHP session for web requests
             $_SESSION['email'] = $email;
             $_SESSION['id'] = $user['user_id'];
-            $_SESSION['user']=$user;
-
+            
+            // Additional shared data in Memcached
+            $memcached = new \Memcached();
+            $memcached->addServer('localhost', 11211);
+            
+            // Store WebSocket-relevant data
+            $wsData = [
+                'user_id' => $user['user_id'],
+                'email' => $email,
+            ];
+            
+            $memcached->set('ws_user_'.$user['user_id'], $wsData, 86400); //en secondes
+                        
             header('Location: ?controller=list');
-            session_write_close();// pour que la session se sauvegarde, on peux plus écrire mais toujours lire.
             exit();
-        } else {
-            $message = "Mauvais identifiant ou mot de passe";
-            echo $message;
         }
     }
 }

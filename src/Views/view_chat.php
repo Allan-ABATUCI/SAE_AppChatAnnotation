@@ -79,8 +79,8 @@
             if (conn && conn.readyState === WebSocket.OPEN) {
                 const donneesMessage = {
                     content: texteMessage,
-                    recipient: interlcuteur
-                    // Note: L'émotion n'est pas envoyée via WS
+                    recipient: interlcuteur,
+                    emotion:selectedEmotion
                 };
                 conn.send(JSON.stringify(donneesMessage));
             }
@@ -91,13 +91,14 @@
             selectedEmotion = null;
         }
 
-        function afficherMessage(message, expediteur, emotion, nomExpediteur, date) {
+        function afficherMessage(message, expediteur, emotion, nomExpediteur, date,messageID) {
             const divMessage = document.createElement('div');
             divMessage.classList.add('message');
             divMessage.classList.add(expediteur);
             
             const divInfos = document.createElement('div');
             divInfos.classList.add('message-info');
+            divInfos.dataset.messageId = messageId;
             divInfos.textContent = `${nomExpediteur} - ${date.toLocaleTimeString()}`;
             
             const divContenu = document.createElement('div');
@@ -110,7 +111,7 @@
         }
 
         function initierWebSocket() {
-            conn = new WebSocket('ws://' + window.location.hostname + ':8081/chat');
+            conn = new WebSocket('ws://' + window.location.hostname + ':8081/chat?id=<?php $_SESSION['id'] ?>');
             
             conn.onopen = function(e) {
                 console.log("Connexion WebSocket établie !");
@@ -126,7 +127,9 @@
                             donnees.content, 
                             "other", 
                             donnees.senderName || 'Inconnu', 
-                            new Date()
+                            new Date(),
+                            donnes.msgid
+
                         );
                     }
                 } catch (erreur) {

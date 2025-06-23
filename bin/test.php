@@ -1,31 +1,45 @@
 <?php
-// Configure Memcached as session handler
 ini_set('session.save_handler', 'memcached');
-
-// For Memcached, use this format for save_path:
-// "host:port,host2:port2?timeout=1&retry_interval=15"
 ini_set('session.save_path', 'localhost:11211');
 
-// Initialize Memcached client
 $m = new \Memcached();
 $m->addServer('localhost', 11211);
 
-// Set custom session ID prefix (optional)
-ini_set('memcached.sess_prefix', 'memc.sess.key.');
+// Options de debug
+$m->setOption(\Memcached::OPT_BINARY_PROTOCOL, false);
+$m->setOption(\Memcached::OPT_COMPRESSION, false);
 
 session_start();
+$_SESSION['test'] = ['a' => 1, 'b' => 2];
+session_write_close();
 
-// Store test value
-$_SESSION['test'] = 'value';
-session_write_close(); // Ensure session is saved
+$sessionId = session_id();
+$keys = $m->getAllKeys();
 
-// Debug output
-echo "Current session ID: " . session_id() . "\n";
-echo "Session data from \$_SESSION:\n";
-var_dump($_SESSION);
+echo "Clés disponibles:\n";
+print_r($keys);
 
-// Verify directly in Memcached
-$memcachedKey = 'memc.sess.key.' . session_id();
-echo "\nMemcached data for key '$memcachedKey':\n";
-var_dump($m->get($memcachedKey));
-
+$prefixes = ['memc.sess.key.', 'memc.sess.', 'sess_'];
+foreach ($prefixes as $prefix) {
+    $key = $prefix . $sessionId;
+    $data = $m->get($key);
+    
+    echo "\nEssai avec clé: $key\n";
+    echo "Données brutes:\n";
+    var_dump($data);
+    
+    if ($data !== false) {
+        echo "Tentative unserialize():\n";
+        $unserialized = @unserialize($data);
+        var_dump($unserialized);
+        
+        echo "Tentative session_decode():\n";
+        $_SESSION = [];
+        $result = @session_decode($data);
+        var_dump($result, $_SESSION);
+        
+        break;
+    }
+}
+$m->set('test_key', serialize(['a'=>1]));
+var_dump(unserialize($m->get('test_key')));

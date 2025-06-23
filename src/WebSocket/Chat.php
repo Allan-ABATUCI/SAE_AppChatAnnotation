@@ -3,52 +3,55 @@ namespace App\WebSocket;
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
-use Models\Model;
+use App\Models\Model_ws;
 
 class Chat implements MessageComponentInterface 
 {
     protected $connexionsUtilisateurs;
     private $memcached;
 
+    private $bd;
+
     public function __construct() 
     {
         $this->connexionsUtilisateurs = [];
         $this->memcached = new \Memcached();
         $this->memcached->addServer('localhost', 11211); // Configurez selon votre environnement
+        $this->bd=Model_ws::getModel();
     }
 
     public function onOpen(ConnectionInterface $connexion) 
     {
-        echo "Nouvelle connexion ({$connexion->resourceId}) ouverte.\n";
+        
 
         // Analyser la chaîne de requête pour le jeton
         $queryString = $connexion->httpRequest->getUri()->getQuery();
         parse_str($queryString, $queryParameters);
 
-        if (!isset($queryParameters['token'])) {
-            $connexion->close();
-            return;
+        if (!isset($queryParameters['id'])) {
+            echo "erreur : pas d'id en query params";
+            var_dump($queryParameters);
+            
         }
 
-        $authToken = $queryParameters['token'];
-
-        // 1. Récupérer l'ID de session depuis Memcached
-        $sessionId = $this->memcached->get('ws_auth_token:' . $authToken);
+        $userId = $queryParameters['id'];
+        echo "Nouvelle connexion ({$userId}) ouverte. :\n";
         
-        if (!$sessionId) {
-            $connexion->close();
-            return;
+        
+        if (!$userId) {
+            var_dump($userId);
         }
 
         // 2. Récupérer les données de session depuis Memcached
-        $sessionData = $this->memcached->get('session:' . $sessionId);
+        $sessionData =$this->memcached->get('ws_user_'.$userId);
         
-        if (!$sessionData || !isset($sessionData['user']['id'])) {
-            $connexion->close();
-            return;
+        if (!$sessionData) {
+            echo "erreur : Session data : \n";
+            var_dump($sessionData);
+            echo "Memcached";
+            $keys = $this->memcached->getAllKeys();
         }
 
-        $userId = $sessionData['user']['id'];
 
         // Stocker les données de session dans la connexion pour un accès ultérieur
         $connexion->sessionData = $sessionData;
@@ -71,8 +74,8 @@ class Chat implements MessageComponentInterface
         if (!isset($expediteur->sessionData)) {
             return;
         }
-
-        $senderData = $expediteur->sessionData['user'];
+    
+        $senderData = $expediteur->sessionData;
         $senderId = $senderData['id'];
         $senderName = $senderData['username'];
 
@@ -84,7 +87,12 @@ class Chat implements MessageComponentInterface
         }
 
         echo "Message from {$senderName} to {$recipientId}: {$message['content']}\n";
-
+        
+        if($messageId=$this->bd->insertMessageWithEmotion($senderId,
+            $recipientId,
+            $message['content'],
+            $message['emotion']))
+        
         // Send to recipient if connected
         if (isset($this->connexionsUtilisateurs[$recipientId])) {
             $recipientConn = $this->connexionsUtilisateurs[$recipientId];
@@ -92,7 +100,7 @@ class Chat implements MessageComponentInterface
                 'content' => $message['content'],
                 'sender' => $senderId,
                 'senderName' => $senderName,
-                'timestamp' => time()
+                'msgid' => $messageId,
             ]));
         } else {
             echo "User {$recipientId} is offline\n";
@@ -102,11 +110,7 @@ class Chat implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $connexion) 
     {
-        if (!isset($connexion->sessionData)) {
-            return;
-        }
-
-        $userId = $connexion->sessionData['user']['id'];
+        $userId = $connexion->sessionData['user_id'];
 
         if (isset($this->connexionsUtilisateurs[$userId])) {
             unset($this->connexionsUtilisateurs[$userId]);

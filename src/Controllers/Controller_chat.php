@@ -8,24 +8,19 @@ class Controller_chat extends Controller
 {
     public function action_default()
     {
-
+        
         $this->action_chat();
     }
 
     public function action_chat()
     {
-        $id__utilisateur=e($_GET["id"]);
-        $this->render('chat');
+        if (!isset($_SESSION['id']) || session_status() === PHP_SESSION_NONE || !preg_match('/^\d+$/', $_SESSION['id'])) {
+    header("Location: ?controller=login");
+    }   
+    $this->render("chat");
     }
-    public function action_save(): void
-    {
-        $bd=Model::getModel();
-        $msg = $_POST['msg'] ?? false;
-        $sender = $_SESSION['id'] ?? false;
-        if ($msg && $sender && preg_match('/^\S+$/', $msg)) {
-            //insertMessageWithEmotion();
-        }
-    }
+
+
     
     public function action_react(): void
     {
@@ -36,7 +31,7 @@ class Controller_chat extends Controller
         $userId = $_SESSION['id'] ?? null;
 
         if ($messageId && $emoji && $userId) {
-            $bd->addReactionToMessage($messageId, $userId, $emoji);
+            $bd->addReactionToMessage(userId: $messageId, $messageId, $emoji);
             echo json_encode(['status' => 'success']);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Missing data']);

@@ -36,7 +36,7 @@ class Model
      */
     private function __construct()
     {
-        include "src/Auth/credentials.php";
+        require_once "src/Auth/credentials.php";
         $this->bd = new PDO($dsn, $login, $mdp);
         $this->bd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->bd->query("SET names 'utf8'");
@@ -46,7 +46,7 @@ class Model
      * Récupère l'instance unique de la classe Model
      * 
      * @return Model L'instance unique
-     */
+     */ 
     public static function getModel()
     {
         if (self::$instance === null) {
@@ -263,7 +263,7 @@ public function insertMessageWithEmotion($sender_id, $user2_id, $message, $emoti
         // Valider la transaction
         $this->bd->commit();
          
-        return true;
+        return $message_id;
         
     } catch (PDOException $e) {
         // Annuler la transaction en cas d'erreur
