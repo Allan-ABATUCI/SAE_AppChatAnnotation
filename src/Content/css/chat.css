@@ -1,3 +1,4 @@
+    /* === Reset et Body === */
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -6,91 +7,18 @@
       display: flex;
       color: #d3d3f4;
       user-select: none;
+      justify-content: center; /* centrer le chat seul */
+      align-items: center;
     }
 
-    .app-container {
-      display: flex;
-      width: 100%;
-      height: 100vh;
-      box-shadow:
-        inset 0 0 20px 5px #6a0dad80,
-        0 0 50px 15px #5a2aeb80;
-      border-radius: 20px;
-      overflow: hidden;
-    }
-
-    /* === Sidebar contacts === */
-    .contact-list {
-      width: 250px;
-      background: linear-gradient(180deg, #1c1f3c 0%, #3b3c72 100%);
-      border-right: 1px solid #4a2ea6;
-      display: flex;
-      flex-direction: column;
-      color: #b9b9ff;
-      box-shadow: inset -2px 0 10px #5a2aebaa;
-      transition: transform 0.3s ease;
-    }
-
-    .contact-list.hidden {
-      transform: translateX(-260px);
-    }
-
-    .contact-list h3 {
-      margin: 0;
-      padding: 20px;
-      border-bottom: 1px solid #5a2aeb;
-      text-align: center;
-      font-weight: 700;
-      text-shadow: 0 0 10px #7f5fff;
-    }
-
-    .contact-list ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      overflow-y: auto;
-      flex-grow: 1;
-      scrollbar-width: thin;
-      scrollbar-color: #7f5fff #1c1f3c;
-    }
-
-    .contact-list ul::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .contact-list ul::-webkit-scrollbar-thumb {
-      background-color: #7f5fff;
-      border-radius: 10px;
-    }
-
-    .contact-list li {
-      padding: 15px 20px;
-      border-bottom: 1px solid #4a2ea6;
-      cursor: pointer;
-      transition: background 0.3s, color 0.3s;
-      text-shadow: 0 0 5px #7f5fff80;
-    }
-
-    .contact-list li:hover {
-      background: #6e57ff;
-      color: #fff;
-      text-shadow: 0 0 15px #a18fff;
-    }
-
-    .contact-list li.active {
-      background: #7f5fff;
-      font-weight: 700;
-      color: white;
-      text-shadow: 0 0 20px #c3bfff;
-    }
-
-    /* === Chat container === */
+    /* On garde la classe chat-container et son style intacte */
     .chat-container {
-      flex: 1;
+      width: 600px;
+      height: 90vh;
       display: flex;
       flex-direction: column;
       background: #0f0f25;
-      border-radius: 0 20px 20px 0;
+      border-radius: 20px;
       box-shadow: inset 0 0 20px 3px #5a2aeb;
       overflow: hidden;
       position: relative;
@@ -111,7 +39,7 @@
       user-select: none;
     }
 
-    /* Bouton Accueil */
+    /* Bouton Accueil comme lien */
     #btnHome {
       background: transparent;
       border: 2px solid #d3d3f4;
@@ -123,6 +51,9 @@
       transition: background-color 0.3s, color 0.3s;
       user-select: none;
       font-size: 14px;
+      text-decoration: none; /* lien sans soulignement */
+      display: inline-block;
+      text-align: center;
     }
 
     #btnHome:hover {
@@ -272,3 +203,4 @@
       color: #c3bfff;
       text-shadow: 0 0 8px #c3bfff;
     }
+  
