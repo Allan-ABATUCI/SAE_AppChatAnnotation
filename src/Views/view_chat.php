@@ -1,150 +1,61 @@
 <!DOCTYPE html>
+<html lang="fr">
 <head>
-    <title>Chat Annoté</title>
-    <style>
-       
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat - Messagerie</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emoji-picker-element/1.6.2/emoji-picker-element.min.css">
+  <link rel="stylesheet" href="content/css/chat.css" />
 </head>
-
 <body>
-    <div id="chat-container">
-        <div id="recipient-info"></div>
-        <div id="message-area"></div>
-        <div id="input-area">
-            <textarea id="message-input" placeholder="Écrivez votre message..."></textarea>
-            <div id="emotion-buttons">
-                <button data-emotion="joie">Joie</button>
-                <button data-emotion="colère">Colère</button>
-                <button data-emotion="tristesse">Tristesse</button>
-            </div>
-            <button id="send-button">Envoyer</button>
-        </div>
+  <div class="chat-container">
+    <div class="chat-header">Messagerie</div>
+
+    <div class="chat-box" id="chatBox"></div>
+
+    <div class="chat-input">
+      <emoji-picker style="position: absolute; bottom: 70px; left: 10px; display: none;"></emoji-picker>
+      <button id="toggleEmoji">😃</button>
+      <input type="text" id="messageInput" placeholder="Message..." />
+      <button onclick="sendMessage()">Envoyer</button>
     </div>
+  </div>
 
-    <script>
-        // Éléments de l'interface
-        const messageArea = document.getElementById('message-area');
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
-        const emotionButtons = document.getElementById('emotion-buttons').querySelectorAll('button');
-        const recipientInfo = document.getElementById('recipient-info');
-        
-        // Variables d'état
-        let selectedEmotion = null;
-        let conn;
-        let interlcuteur = <?php echo e($_GET["id"]);?>;
+  <script type="module">
+    import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
 
-        // Initialisation du chat
-        window.onload = function() {
-            
-            
-            if ( interlcuteur && interlcuteur!="") {
-                initierWebSocket();
-            } else {
-                recipientInfo.textContent = "Aucun ID de destinataire spécifié.";
-            }
-        };
+    const input = document.getElementById('messageInput');
+    const chatBox = document.getElementById('chatBox');
+    const emojiPicker = document.querySelector('emoji-picker');
+    const toggleEmoji = document.getElementById('toggleEmoji');
 
-        // Gestion des boutons d'émotion
-        emotionButtons.forEach(bouton => {
-            bouton.addEventListener('click', () => {
-                emotionButtons.forEach(btn => btn.classList.remove('selected'));
-                bouton.classList.add('selected');
-                selectedEmotion = bouton.dataset.emotion;
-            });
-        });
+    toggleEmoji.addEventListener('click', () => {
+      emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+    });
 
-        // Envoi du message
-        sendButton.addEventListener('click', envoyerMessage);
-        
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                envoyerMessage();
-            }
-        });
+    emojiPicker.addEventListener('emoji-click', event => {
+      input.value += event.detail.unicode;
+    });
 
-        async function envoyerMessage() {
-            const texteMessage = messageInput.value.trim();
+    function sendMessage() {
+      const message = input.value.trim();
+      if (!message) return;
 
-            if (texteMessage === "" || selectedEmotion == null) {
-                alert("Veuillez écrire un message et sélectionner une émotion");
-                return;
-            }
+      const userMessage = document.createElement('div');
+      userMessage.className = 'message user';
+      userMessage.innerText = message;
+      chatBox.appendChild(userMessage);
 
-            // Afficher le message localement
-            afficherMessage(texteMessage, "mine", selectedEmotion, 'Vous', new Date());
-            
-            // 1. Envoyer via WebSocket pour le chat en temps réel
-            if (conn && conn.readyState === WebSocket.OPEN) {
-                const donneesMessage = {
-                    content: texteMessage,
-                    recipient: interlcuteur,
-                    emotion:selectedEmotion
-                };
-                conn.send(JSON.stringify(donneesMessage));
-            }
+      input.value = '';
+      emojiPicker.style.display = 'none';
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-            // Réinitialiser le champ de saisie
-            messageInput.value = '';
-            emotionButtons.forEach(btn => btn.classList.remove('selected'));
-            selectedEmotion = null;
-        }
-
-        function afficherMessage(message, expediteur, emotion, nomExpediteur, date,messageID) {
-            const divMessage = document.createElement('div');
-            divMessage.classList.add('message');
-            divMessage.classList.add(expediteur);
-            
-            const divInfos = document.createElement('div');
-            divInfos.classList.add('message-info');
-            divInfos.dataset.messageId = messageId;
-            divInfos.textContent = `${nomExpediteur} - ${date.toLocaleTimeString()}`;
-            
-            const divContenu = document.createElement('div');
-            divContenu.textContent = `${message}`;
-            
-            divMessage.appendChild(divInfos);
-            divMessage.appendChild(divContenu);
-            messageArea.appendChild(divMessage);
-            messageArea.scrollTop = messageArea.scrollHeight;
-        }
-
-        function initierWebSocket() {
-            conn = new WebSocket('ws://' + window.location.hostname + ':8081/chat?id=<?php $_SESSION['id'] ?>');
-            
-            conn.onopen = function(e) {
-                console.log("Connexion WebSocket établie !");
-            };
-
-            conn.onmessage = function(e) {
-                try {
-                    const donnees = JSON.parse(e.data);
-                    console.log("Message reçu:", donnees);
-                    
-                    if (donnees.content && donnees.sender) {
-                        afficherMessage(
-                            donnees.content, 
-                            "other", 
-                            donnees.senderName || 'Inconnu', 
-                            new Date(),
-                            donnes.msgid
-
-                        );
-                    }
-                } catch (erreur) {
-                    console.error("Erreur d'analyse du message:", erreur);
-                }
-            };
-
-            conn.onerror = function(e) {
-                console.error("Erreur WebSocket :", e);
-            };
-
-            conn.onclose = function(e) {
-                console.log("Connexion WebSocket fermée.");
-            };
-        }
-    </script>
+    input.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+  </script>
 </body>
 </html>
