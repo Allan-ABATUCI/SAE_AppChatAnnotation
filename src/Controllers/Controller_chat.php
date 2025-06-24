@@ -21,7 +21,7 @@ class Controller_chat extends Controller
     }
 
 
-    
+    /* 
     public function action_react(): void
     {
         $bd = Model::getModel();
@@ -36,5 +36,5 @@ class Controller_chat extends Controller
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Missing data']);
         }
-    }
+    } */
 } 
