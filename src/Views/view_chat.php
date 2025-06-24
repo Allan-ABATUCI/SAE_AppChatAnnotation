@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Messagerie</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emoji-picker-element/1.6.2/emoji-picker-element.min.css" />
+  <link rel="stylesheet" href="Content/css/chat.css" />
+
 
 </head>
 <body>
