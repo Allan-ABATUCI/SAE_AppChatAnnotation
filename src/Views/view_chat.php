@@ -10,7 +10,8 @@
 <body>
   <div class="chat-container">
     <header class="chat-header">
-      <a href="/contacts.html" id="btnHome" title="Retour aux contacts">Contacts</a>
+      <!-- Le bouton devient un lien vers la page contacts existante -->
+      <a href="/view_contact.php" id="btnHome" title="Retour aux contacts">Contacts</a>
       <div id="chatWithName">Chat</div>
     </header>
 
@@ -29,7 +30,11 @@
 
     const currentChatId = 'ContactUnique'; 
 
-
+      const messages = {
+      ContactUnique: [
+        { sender: 'other', text: "Salut ! Comment tu vas ?" },
+      ],
+    };
 
     // Elements DOM
     const chatBox = document.getElementById('chatBox');
