@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chat - Messagerie Galactique</title>
+  <title>Messagerie</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emoji-picker-element/1.6.2/emoji-picker-element.min.css" />
 
 </head>
 <body>
   <div class="chat-container">
     <header class="chat-header">
-      <!-- Le bouton devient un lien vers la page contacts existante -->
       <a href="/contacts.html" id="btnHome" title="Retour aux contacts">Contacts</a>
       <div id="chatWithName">Chat</div>
     </header>
@@ -28,15 +27,9 @@
   <script type="module">
     import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
 
-    // Données contact unique dans cette page, tu peux changer l'id si tu veux
     const currentChatId = 'ContactUnique'; 
 
-    // Messages pour ce contact (exemple)
-    const messages = {
-      ContactUnique: [
-        { sender: 'other', text: "Salut ! Comment tu vas ?" },
-      ],
-    };
+
 
     // Elements DOM
     const chatBox = document.getElementById('chatBox');
