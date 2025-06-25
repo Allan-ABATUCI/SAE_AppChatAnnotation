@@ -137,64 +137,156 @@ body, html {
     border: 2px solid #53A0FD;
 }
 
-/* Chat box à droite */
-.chat-box {
+/* Chat container */
+.chat-container {
     flex-grow: 1;
-    padding: 25px;
     display: flex;
     flex-direction: column;
+    padding: 25px;
     background: #fff;
     margin: 0;
     box-sizing: border-box;
+    
 }
 
-.chat-box h3 {
-    margin-top: 0;
+/* Header chat */
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
     margin-bottom: 15px;
-    color: #2da0a8; /* vert assorti */
+    background-color: #2da0a8;
 }
 
-.messages {
+.chat-header #btnHome {
+   background-color: #2da0a8;
+    font-weight: 600;
+    text-decoration: none;
+    border: 2px solid #2da0a8;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.chat-header #btnHome:hover {
+    background-color: #2da0a8;
+    color: white;
+}
+
+#chatWithName {
+    font-weight: 700;
+    font-size: 22px;
+    background-color: #2da0a8;
     flex-grow: 1;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
-    overflow-y: auto;
-    background: #f9f9f9;
-    min-height: 250px;
 }
 
-.chat-box textarea {
-    resize: none;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 10px;
+/* Messages box */
+#chatBox {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    padding: 10px;
     border: 1px solid #ccc;
-    margin-bottom: 15px;
-    width: 100%;
-    box-sizing: border-box;
+    border-radius: 10px;
+    background: #fafafa;
     font-family: 'Poppins', sans-serif;
 }
 
-.chat-box button {
-    background: #2da0a8; /* vert */
-    color: white;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    width: 140px;
-    align-self: flex-end;
-    transition: background 0.3s ease;
+/* Message style */
+.message {
+    margin: 6px 0;
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 70%;
+    word-wrap: break-word;
 }
 
-.chat-box button:hover {
+.message.user {
+    background-color: #2da0a8;
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.message.other {
+    background-color: #e2f0ff;
+    color: #222;
+    align-self: flex-start;
+    margin-right: auto;
+}
+
+/* Input area */
+.chat-input {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.emotion-selector {
+    flex-shrink: 0;
+}
+
+.emotion-selector label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.emotion-selector select {
+    padding: 6px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#toggleEmoji {
+    cursor: pointer;
+    font-size: 22px;
+    border: none;
+    background: none;
+}
+
+#messageInput {
+    flex-grow: 1;
+    padding: 8px 10px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-family: 'Poppins', sans-serif;
+}
+
+#sendBtn {
+    padding: 8px 20px;
+    background: #2da0a8;
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#sendBtn:hover {
     background: #238588;
 }
 
+#miniPicker {
+    display: none;
+    margin-top: 8px;
+    width: 100%;
+    gap: 10px;
+    flex-wrap: wrap;
+    user-select: none;
+}
 
+.mini-picker-emoji {
+    cursor: pointer;
+    font-size: 22px;
+}
+
+.mini-picker-emoji:hover {
+    transform: scale(1.2);
+    transition: transform 0.2s ease;
+}
 </style>
 
 <div class="container">
@@ -202,19 +294,15 @@ body, html {
     <div class="sidebar">
         <div class="profile-section">
             <img src="src/App/Content/img/profile.png" alt="profil" class="user_icon">
-            <p  id="name-sidebar" style="display:none;"><?= htmlspecialchars($_SESSION['id'] ?? 'Invité') ?></p>
+            <p id="name-sidebar" style="display:none;"><?= htmlspecialchars($_SESSION['id'] ?? 'Invité') ?></p>
         </div>
 
         <ul class="menu">
             <li class="menu-item active">
-               <a href="index.php?controller=list&id=<?= urlencode($_SESSION['id']) ?>">
-    <img src="src/App/Content/img/home.png" alt="home" class="icon-small">
-</a>
-
-
-
+                <a href="index.php?controller=list&id=<?= urlencode($_SESSION['id']) ?>">
+                    <img src="src/App/Content/img/home.png" alt="home" class="icon-small">
+                </a>
             </li>
-            
             <li class="menu-item">
                 <a href="?controller=profil">
                     <img src="src/App/Content/img/settings.png" alt="settings">
@@ -245,23 +333,189 @@ body, html {
     </div>
 
     <!-- Boîte de dialogue -->
-    <div class="chat-box" id="chatbox">
-        <p>Sélectionnez un contact pour démarrer une conversation.</p>
+    <div class="chat-container">
+        <header class="chat-header">
+            <div id="chatWithName">Chat</div>
+        </header>
+
+        <div id="chatBox"></div>
+
+        <div class="chat-input">
+            <div class="emotion-selector">
+                <label for="emotionSelect">Émotion :</label>
+                <select id="emotionSelect" name="emotion" required>
+                    <option value="" selected disabled hidden>Choisissez une émotion</option>
+                    <option value="joie">😊 Joie</option>
+                    <option value="colère">😠 Colère</option>
+                    <option value="tristesse">😢 Tristesse</option>
+                    <option value="surprise">😲 Surprise</option>
+                    <option value="dégoût">🤢 Dégoût</option>
+                    <option value="peur">😨 Peur</option>
+                </select>
+            </div>
+
+            <button id="toggleEmoji" title="Ouvrir le sélecteur d'émojis">😃</button>
+
+            <input type="text" id="messageInput" placeholder="Écris un message..." autocomplete="off" />
+
+            <button id="sendBtn">Envoyer</button>
+
+            <div id="miniPicker">
+                <span class="mini-picker-emoji">😊</span>
+                <span class="mini-picker-emoji">😂</span>
+                <span class="mini-picker-emoji">😎</span>
+                <span class="mini-picker-emoji">😢</span>
+                <span class="mini-picker-emoji">😡</span>
+            </div>
+        </div>
     </div>
 </div>
 
-<script>
-function openChatBox(userId, username) {
-    const chatbox = document.getElementById('chatbox');
-    chatbox.innerHTML = `
-        <h3>Conversation avec ${username}</h3>
-        <div class="messages">
-            <p><em>Zone messages (à développer)</em></p>
-        </div>
-        <textarea placeholder="Écrivez un message..." rows="4"></textarea>
-        <button onclick="alert('Envoyer message à ${username} (à implémenter)')">Envoyer</button>
-    `;
+<script type="module">
+import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
+
+let currentChatId = null;
+let currentChatName = '';
+
+// Messages stockés par contact (simulé)
+let messages = {};
+
+const chatBox = document.getElementById('chatBox');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const toggleEmoji = document.getElementById('toggleEmoji');
+const miniPicker = document.getElementById('miniPicker');
+const emotionSelect = document.getElementById('emotionSelect');
+const chatWithName = document.getElementById('chatWithName');
+
+function renderMessages() {
+    chatBox.innerHTML = '';
+    if (!currentChatId || !messages[currentChatId]) return;
+
+    messages[currentChatId].forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'message ' + (msg.sender === 'user' ? 'user' : 'other');
+        div.textContent = `[${msg.emotion}] ${msg.text}`;
+        chatBox.appendChild(div);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
+
+function sendMessage() {
+    const text = messageInput.value.trim();
+    const emotion = emotionSelect.value;
+
+    if (!currentChatId) {
+        alert('Sélectionnez un contact.');
+        return;
+    }
+    if (!text) {
+        alert('Le message est vide.');
+        messageInput.focus();
+        return;
+    }
+    if (!emotion) {
+        alert('Veuillez choisir une émotion.');
+        emotionSelect.focus();
+        return;
+    }
+
+    if (!messages[currentChatId]) messages[currentChatId] = [];
+    messages[currentChatId].push({ sender: 'user', text, emotion });
+
+    renderMessages();
+
+    // Envoi WebSocket
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            content: text,
+            emotion,
+            recipient: currentChatId
+        }));
+    }
+
+    messageInput.value = '';
+    emotionSelect.value = '';
+}
+
+sendBtn.addEventListener('click', sendMessage);
+messageInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+toggleEmoji.addEventListener('click', () => {
+    miniPicker.style.display = miniPicker.style.display === 'flex' ? 'none' : 'flex';
+});
+
+document.querySelectorAll('.mini-picker-emoji').forEach(emoji => {
+    emoji.addEventListener('click', () => {
+        messageInput.value += emoji.textContent;
+        messageInput.focus();
+        miniPicker.style.display = 'none';
+    });
+});
+
+function openChatBox(id, name) {
+    currentChatId = id;
+    currentChatName = name;
+    chatWithName.textContent = `Chat avec ${name}`;
+
+    if (!messages[currentChatId]) {
+        messages[currentChatId] = [];
+        // Simuler un message de bienvenue
+        messages[currentChatId].push({ sender: 'other', text: "Salut ! Comment tu vas ?", emotion: 'joie' });
+    }
+
+    renderMessages();
+    initWebSocket();
+}
+
+let ws;
+
+function initWebSocket() {
+    if (ws) {
+        ws.close();
+    }
+    if (!currentChatId) return;
+
+    ws = new WebSocket(`ws://${window.location.hostname}:8081/chat?id=${encodeURIComponent(currentChatId)}`);
+
+    ws.onopen = () => {
+        console.log('WebSocket connecté');
+    };
+
+    ws.onmessage = event => {
+        try {
+            const msg = JSON.parse(event.data);
+            if (msg.content && msg.sender && msg.sender !== currentChatId) {
+                if (!messages[currentChatId]) messages[currentChatId] = [];
+                messages[currentChatId].push({ sender: 'other', text: msg.content, emotion: msg.emotion || 'aucune' });
+                renderMessages();
+            }
+        } catch(e) {
+            console.error('Erreur parsing WS message:', e);
+        }
+    };
+
+    ws.onerror = e => {
+        console.error('WebSocket error:', e);
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket déconnecté. Reconnexion dans 5s...');
+        setTimeout(initWebSocket, 5000);
+    };
+}
+
+window.openChatBox = openChatBox;
+
+// Optionnel : ouvrir premier contact automatiquement (si existant)
+document.addEventListener('DOMContentLoaded', () => {
+    const firstContact = document.querySelector('.user-card');
+    if (firstContact) {
+        firstContact.click();
+    }
+});
 </script>
 
 <?php require_once 'view_end.php'; ?>
