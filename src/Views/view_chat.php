@@ -43,125 +43,98 @@
     </div>
   </div>
 
-  <script type="module">
-    // import emoji-picker 
-    import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
+<script type="module">
+import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
 
-    const currentChatId = '<?php echo e($_GET['id']) ; ?>'; 
+const currentChatId = '<?php echo e($_GET['id']) ; ?>';
+let messages = { ContactUnique: [{ sender: 'other', text: "Salut ! Comment tu vas ?" }] };
 
-    let messages = {
-      ContactUnique: [
-        { sender: 'other', text: "Salut ! Comment tu vas ?" },
-      ],
-    };
+const chatBox = document.getElementById('chatBox');
+const chatWithName = document.getElementById('chatWithName');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const toggleEmoji = document.getElementById('toggleEmoji');
+const miniPicker = document.getElementById('miniPicker');
+const emotionSelect = document.getElementById('emotionSelect');
 
-    const chatBox = document.getElementById('chatBox');
-    const chatWithName = document.getElementById('chatWithName');
-    const messageInput = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const toggleEmoji = document.getElementById('toggleEmoji');
-    const emotionSelect = document.getElementById('emotionSelect');
+function renderMessages() {
+  chatBox.innerHTML = '';
+  const msgs = messages[currentChatId] || [];
+  msgs.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = 'message ' + (msg.sender === 'user' ? 'user' : 'other');
+    div.innerText = msg.text;
+    chatBox.appendChild(div);
+  });
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
+function sendMessage() {
+  const text = messageInput.value.trim();
+  const emotion = emotionSelect.value;
+  if (!text || !emotion) {
+    if (!emotion) emotionSelect.focus();
+    return;
+  }
+  const full = `[${emotion}] ${text}`;
+  messages[currentChatId] = messages[currentChatId] || [];
+  messages[currentChatId].push({ sender: 'user', text: full });
+  renderMessages();
+  messageInput.value = '';
+  emotionSelect.value = '';
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ content: text, emotion, recipient: currentChatId }));
+  }
+}
 
-    function renderMessages() {
-      chatBox.innerHTML = '';
-      const msgs = messages[currentChatId] || [];
-      msgs.forEach(msg => {
-        const div = document.createElement('div');
-        div.className = 'message ' + (msg.sender === 'user' ? 'user' : 'other');
-        div.innerText = msg.text;
-        chatBox.appendChild(div);
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-    
+sendBtn.addEventListener('click', sendMessage);
+messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
 
-    function sendMessage() {
-      const text = messageInput.value.trim();
-      const emotion = emotionSelect.value;
+toggleEmoji.addEventListener('click', () => {
+  miniPicker.style.display = miniPicker.style.display === 'flex' ? 'none' : 'flex';
+});
 
-      // Vérifie que les deux champs sont remplis
-      if (!text || !emotion) {
-        if (!emotion) {
-          emotionSelect.focus();
-          alert("Veuillez sélectionner une émotion");
-        }
-        return;
-      }
-      
-      if (!messages[currentChatId]) messages[currentChatId] = [];
-      messages[currentChatId].push({ 
-        sender: 'user', 
-        text: `[${emotion}] ${text}` // Ajoute l'émotion au message
-      });
-      
-      renderMessages();
-      messageInput.value = '';
-      emotionSelect.value = ''; // Réinitialise le select
-      emojiPicker.style.display = 'none';
-    }
+document.querySelectorAll('.mini-picker-emoji').forEach(e => {
+  e.addEventListener('click', () => {
+    messageInput.value += e.textContent;
+    messageInput.focus();
+    miniPicker.style.display = 'none';
+  });
+});
 
-    sendBtn.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+chatWithName.textContent = currentChatId || 'Chat';
+renderMessages();
 
-    toggleEmoji.addEventListener('click', () => {
-      miniPicker.style.display = miniPicker.style.display === 'flex' ? 'none' : 'flex';
-    });
-
-    document.querySelectorAll('.mini-picker-emoji').forEach(e => {
-      e.addEventListener('click', () => {
-        messageInput.value += e.textContent;
-        messageInput.focus();
-        miniPicker.style.display = 'none';
-      });
-    });
-
-    chatWithName.textContent = "ContactUnique";
-    renderMessages();
-
-    window.onload = function() {
-      const currentRecipientId = "<?php echo $_GET['id'] ?? ''; ?>";
-      
-      if (currentRecipientId) {
-
-        initierWebSocket();
-      } else {
-        recipientInfo.textContent = "Aucun ID de destinataire spécifié.";
-      }
-    };
-
-    function initWebSocket() {
-  // Adjust the WebSocket URL to match your Ratchet server
-  ws = new WebSocket('ws://localhost:8081/chat&id='+currentUserId);
+let ws;
+function initWebSocket() {
+  ws = new WebSocket('ws://' + window.location.hostname + ':8081/chat?id=' + encodeURIComponent(currentChatId));
 
   ws.onopen = function() {
-    console.log('WebSocket connection established');
+    console.log('WebSocket connecté.');
   };
 
   ws.onmessage = function(event) {
-    const message = JSON.parse(event.data);
-    
-    // Only process messages for this chat
-    if (message.recipient_id === currentUserId || message.sender_id === recipientId) {
-      if (!messages[currentChatId]) messages[currentChatId] = [];
-      
-      messages[currentChatId].push({
-        sender: message.sender_id === currentUserId ? 'user' : 'other',
-        text: `[${message.emotion}] ${message.text}`
-      });
-      
+    const msg = JSON.parse(event.data);
+    if (msg.content && msg.sender && msg.sender !== currentChatId) {
+      messages[currentChatId] = messages[currentChatId] || [];
+      messages[currentChatId].push({ sender: 'other', text: `[${msg.emotion || 'aucune'}] ${msg.content}` });
       renderMessages();
     }
   };
 
+  ws.onerror = function(e) {
+    console.error('Erreur WebSocket :', e);
+  };
+
   ws.onclose = function() {
-    console.log('WebSocket connection closed');
-    // Attempt to reconnect after 5 seconds
+    console.log('WebSocket déconnecté. Tentative de reconnexion dans 5s');
     setTimeout(initWebSocket, 5000);
   };
 }
 
-
-  </script>
+window.onload = function() {
+  if (currentChatId) initWebSocket();
+};
+</script>
 </body>
 </html>
