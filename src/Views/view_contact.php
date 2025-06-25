@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Contacts</title>
-  <link rel="stylesheet" href="Content/css/contact.css" />
+  <link rel="stylesheet" href="src/Content/css/contact.css" />
 
 </head>
 <body>

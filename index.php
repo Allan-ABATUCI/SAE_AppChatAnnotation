@@ -1,8 +1,5 @@
 <?php
-ini_set('session.save_handler', 'memcached');
-ini_set('session.save_path', 'localhost:11211');
-ini_set('memcached.sess_prefix', 'memc.sess.key.');
-
+    
 require_once 'vendor/autoload.php';
 require_once 'src/Utils/functions.php';
 session_start();

@@ -191,6 +191,12 @@ iframe {
 /*------------------------------------------------------------------
 [ Form ]*/
 
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; display: none; }
+}
+
+
 .login100-form {
   width: 100%;
 }

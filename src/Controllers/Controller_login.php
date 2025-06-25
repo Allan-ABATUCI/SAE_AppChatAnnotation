@@ -18,13 +18,14 @@ class Controller_login extends Controller
     }
 public function action_login()
 {
-    if (isset($_POST['submit_login'])) {
+    if (isset($_POST['submit_login'])) { 
         $bd = Model::getModel();
         $email = e($_POST['email']);
         $mdp = e($_POST['mdp']); 
         $user = $bd->UserExists($email) ? $bd->getUser($email) : false;
         
         if ($user && password_verify($mdp, $user['password_hash'])) {
+            echo "Test 2"; 
             // Standard PHP session for web requests
             $_SESSION['email'] = $email;
             $_SESSION['id'] = $user['user_id'];
@@ -42,7 +43,24 @@ public function action_login()
             $memcached->set('ws_user_'.$user['user_id'], $wsData, 86400); //en secondes
                         
             header('Location: ?controller=list');
-            exit();
+
+        }else{
+            
+            $error_message = "mot de passe ou email erroné";
+        if (!empty($error_message)) {
+            echo '<div id="error-msg" style="
+                position:absolute;
+                padding: 10px;
+                background: #ffcccc;
+                border: 1px solid red;
+                margin: 10px;
+                animation: fadeOut 2s forwards;
+                animation-delay: 2s;
+            ">' . $error_message . '</div>';
+            $error_message =false;
+            $this->action_form_login();
+        
+        }
         }
     }
 }
