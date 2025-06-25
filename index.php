@@ -1,7 +1,7 @@
 <?php
-    
+
 require_once 'vendor/autoload.php';
-require_once 'src/Utils/functions.php';
+// require_once 'src/App/Utils/functions.php';
 session_start();
 
 
@@ -17,8 +17,9 @@ if (isset($_GET['controller']) && in_array($_GET['controller'], $controllers)) {
     $nom_controller = $controller_default;
 }
 
-// On détermine le nom de la classe du contrôleur en utilisant le namespace configuré dans Composer
-$nom_classe = 'App\\Controllers\\Controller_' .$nom_controller; 
+// On détermine le nom de la classe du contrôleur
+$nom_classe = 'App\Controllers\Controller_' . $nom_controller;
+
 if (class_exists($nom_classe)) {
     new $nom_classe();
 } else {
