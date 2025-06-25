@@ -32,11 +32,19 @@
       <button id="toggleEmoji" title="Ouvrir le sélecteur d'émojis">😃</button>
       <input type="text" id="messageInput" placeholder="Écris un message..." autocomplete="off" />
       <button id="sendBtn">Envoyer</button>
-      <emoji-picker style="display:none;"></emoji-picker>
+      <!-- Mini-picker avec 5 emojis -->
+      <div id="miniPicker">
+        <span class="mini-picker-emoji">😊</span>
+        <span class="mini-picker-emoji">😂</span>
+        <span class="mini-picker-emoji">😎</span>
+        <span class="mini-picker-emoji">😢</span>
+        <span class="mini-picker-emoji">😡</span>
+      </div>
     </div>
   </div>
 
   <script type="module">
+    // import emoji-picker 
     import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
 
     const currentChatId = '<?php echo e($_GET['id']) ; ?>'; 
@@ -47,17 +55,14 @@
       ],
     };
 
-    // Elements DOM
     const chatBox = document.getElementById('chatBox');
     const chatWithName = document.getElementById('chatWithName');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
-    const emojiPicker = document.querySelector('emoji-picker');
     const toggleEmoji = document.getElementById('toggleEmoji');
     const emotionSelect = document.getElementById('emotionSelect');
 
 
-    // Affiche tous les messages
     function renderMessages() {
       chatBox.innerHTML = '';
       const msgs = messages[currentChatId] || [];
@@ -70,7 +75,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Envoie un message
     function sendMessage() {
       const text = messageInput.value.trim();
       const emotion = emotionSelect.value;
@@ -97,13 +101,10 @@
     }
 
     sendBtn.addEventListener('click', sendMessage);
-
-    messageInput.addEventListener('keypress', e => {
-      if (e.key === 'Enter') sendMessage();
-    });
+    messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
 
     toggleEmoji.addEventListener('click', () => {
-      emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+      miniPicker.style.display = miniPicker.style.display === 'flex' ? 'none' : 'flex';
     });
 
     emojiPicker.addEventListener('emoji-click', event => {
