@@ -1,18 +1,14 @@
-### Instructions d'installation et de lancement
+### Instructions d'installation et de lancement (linux)
 
 #### 1. **Serveur Web**
 
 - Installe un serveur web (Apache/Nginx) ou utilise un outil comme XAMPP.
-- Tu peux utilisé le server web de développement de PHP:
-  ```bash
-  php -S localhost:3000 -t ~/racineprojet  # Met le dossier racine du projet où est index.php
-  ```
 - Avec XAMPP : place le projet dans le dossier `htdocs`.
 
 #### 2. **Dépendances Composer**
 
 - Installe [Composer](https://getcomposer.org/download/).
-- Pour être sur d'avaoir les dépendances :
+- Pour être sur d'avoir les dépendances :
   ```bash
   composer install
   ```
@@ -28,23 +24,19 @@
   $mdp = 'laflemme';
   ```
 - Crée la base de données via :
-  - En étant connecté à **MySQL/PostgreSQL** :
-    ```sql
-    \i src/App/Utils/sae.sql
-    ```
   - **XAMPP** : Importe le fichier SQL via phpMyAdmin (attention aux conflits si la BDD existe déjà).
 
 #### 4. **Lancer l'application**
 
 - Accède à l'URL dans ton navigateur :
   ```
-  http://localhost:3000
+  http://localhost/lenomdudossier
   ```
 
 #### 5. **WebSocket**
 
 - 'chmod +x start.php'
-- Lance le serveur WebSocket pour pouvoir envoyer les messages avec :
+- Lance le serveur WebSocket se trouvant dans /bin/bash pour pouvoir envoyer les messages avec :
   ```bash
   sudo php start.php  
   ```
@@ -53,10 +45,10 @@
 #### 6. **Memcached**
 
 - Le server web et websocket partage les données de session par memcached
-  - ⚠️ Important le scipt change des configuration pour mettre un service Memcached
+  - ⚠️ Important le scipt change des configuration pour mettre un service Memcached qui se redémarre seul
   - Il y a un script `install.sh` qui permet d'installer et configurer memcached et l'extension php-memcached
   - Faire `chmod +x install.sh` pour ensuite le lancer `sudo ./install.sh`
-  - Si problème regarde le fichier et improvise.
+  - Si Xampp installer avec  `/opt/lampp/bin/pecl install memcached`
 
 ### Developpement
 
