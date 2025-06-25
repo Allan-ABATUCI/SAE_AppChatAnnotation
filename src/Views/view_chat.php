@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Messagerie</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emoji-picker-element/1.6.2/emoji-picker-element.min.css" />
-  <link rel="stylesheet" href="Content/css/chat.css" />
+  <link rel="stylesheet" href="src/Content/css/chat.css" />
 
 
 </head>
@@ -13,7 +13,7 @@
   <div class="chat-container">
     <header class="chat-header">
       <!-- Le bouton devient un lien vers la page contacts existante -->
-      <a href="/view_contact.php" id="btnHome" title="Retour aux contacts">Contacts</a>
+      <a href="?controller=list" id="btnHome" title="Retour aux contacts">Contacts</a>
       <div id="chatWithName">Chat</div>
     </header>
 
@@ -86,7 +86,7 @@
     });
 
     // Initialisation
-    chatWithName.textContent = "ContactUnique";
+    chatWithName.textContent = "<?php echo $username?>";
     renderMessages();
   </script>
 </body>

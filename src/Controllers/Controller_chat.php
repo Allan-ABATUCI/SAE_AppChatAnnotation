@@ -15,9 +15,10 @@ class Controller_chat extends Controller
     public function action_chat()
     {
         if (!isset($_SESSION['id']) || session_status() === PHP_SESSION_NONE || !preg_match('/^\d+$/', $_SESSION['id'])) {
-    header("Location: ?controller=login");
+        header("Location: ?controller=login");
     }   
-    $this->render("chat");
+    $bd=Model::getModel();
+    $this->render("chat",$bd->getUserById(e($_GET['id'])));
     }
 
 

@@ -82,6 +82,16 @@ public function action_login()
             if (!$bd->UserExists($email)) {
                 $_SESSION['email'] = $email;
                 $_SESSION['id'] = $bd->createUser($username, $email, $mdp);
+                $wsData = [
+                    'user_id' => $_SESSION['user_id'],
+                    'email' => $_SESSION['email'],
+                ];
+
+                $memcached = new \Memcached();
+                $memcached->addServer('localhost', 11211);
+                $memcached->set('ws_user_'.$_SESSION['user_id'], $wsData, 86400);
+                
+
                 header('Location: ?controller=list');
                 $bd->updateUserStatus($_SESSION['id'], true);
             } else {
