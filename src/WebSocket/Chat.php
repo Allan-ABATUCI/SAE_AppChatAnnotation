@@ -52,7 +52,6 @@ class Chat implements MessageComponentInterface
             $keys = $this->memcached->getAllKeys();
         }
 
-        echo "TEST : "; var_dump($sessionData);
         // Stocker les données de session dans la connexion pour un accès ultérieur
         $connexion->sessionData = $sessionData;
 
