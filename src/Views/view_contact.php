@@ -471,8 +471,6 @@ function openChatBox(id, name) {
 
     if (!messages[currentChatId]) {
         messages[currentChatId] = [];
-        // Simuler un message de bienvenue
-        messages[currentChatId].push({ sender: 'other', text: "Salut ! Comment tu vas ?", emotion: 'joie' });
     }
 
     renderMessages();
