@@ -74,6 +74,7 @@
       });
       chatBox.scrollTop = chatBox.scrollHeight;
     }
+    
 
     function sendMessage() {
       const text = messageInput.value.trim();
@@ -107,20 +108,22 @@
       miniPicker.style.display = miniPicker.style.display === 'flex' ? 'none' : 'flex';
     });
 
-    emojiPicker.addEventListener('emoji-click', event => {
-      messageInput.value += event.detail.unicode;
-      messageInput.focus();
+    document.querySelectorAll('.mini-picker-emoji').forEach(e => {
+      e.addEventListener('click', () => {
+        messageInput.value += e.textContent;
+        messageInput.focus();
+        miniPicker.style.display = 'none';
+      });
     });
 
-    // Initialisation
-    chatWithName.textContent = "<?php echo $username?>";
+    chatWithName.textContent = "ContactUnique";
     renderMessages();
 
     window.onload = function() {
-      currentRecipientId = "<?php echo $_GET['id'] ?? ''; ?>";
+      const currentRecipientId = "<?php echo $_GET['id'] ?? ''; ?>";
       
       if (currentRecipientId) {
-        recipientInfo.textContent = "Discussion avec l'utilisateur ID: " + currentRecipientId;
+
         initierWebSocket();
       } else {
         recipientInfo.textContent = "Aucun ID de destinataire spécifié.";
@@ -158,50 +161,7 @@
   };
 }
 
-// Modified sendMessage function for WebSocket
-function sendMessage() {
-  const text = messageInput.value.trim();
-  const emotion = emotionSelect.value;
 
-  if (!text || !emotion) {
-    if (!emotion) {
-      emotionSelect.focus();
-      alert("Veuillez sélectionner une émotion");
-    }
-    return;
-  }
-
-  const messageData = {
-    type: 'chat',
-    sender_id: currentUserId,
-    recipient_id: recipientId,
-    chat_id: currentChatId,
-    text: text,
-    emotion: emotion,
-    timestamp: new Date().toISOString()
-  };
-
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(messageData));
-    
-    
-    if (!messages[currentChatId]) messages[currentChatId] = [];
-    messages[currentChatId].push({
-      sender: 'user',
-      text: `[${emotion}] ${text}`
-    });
-    
-    renderMessages();
-    messageInput.value = '';
-    emotionSelect.value = '';
-  } else {
-    alert('Connection lost. Trying to reconnect...');
-    initWebSocket();
-  }
-}
-
-// Initialize WebSocket when page loads
-document.addEventListener('DOMContentLoaded', initWebSocket);
   </script>
 </body>
 </html>
