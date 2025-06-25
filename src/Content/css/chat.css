@@ -13,7 +13,6 @@
 
     /* On garde la classe chat-container et son style intacte */
     .chat-container {
-      width: 600px;
       height: 90vh;
       display: flex;
       flex-direction: column;

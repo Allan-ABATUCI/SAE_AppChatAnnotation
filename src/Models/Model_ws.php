@@ -11,7 +11,7 @@ use PDO;
  * 
  * @package App\Models
  */
-class Model_ws extends Model
+class Model_ws
 {
     /**
      * Instance PDO pour la connexion à la base de données
@@ -36,10 +36,20 @@ class Model_ws extends Model
      */
     private function __construct()
     {
-        require_once "../src/Auth/credentials.php";
+        $dsn = 'mysql:host=localhost;dbname=annote';
+$login = 'test';
+$mdp = 'laflemme';
+
         $this->bd = new PDO($dsn, $login, $mdp);
         $this->bd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->bd->query("SET names 'utf8'");
+    }
+    public static function getModel()
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }   
+        return self::$instance;
     }
 
 }

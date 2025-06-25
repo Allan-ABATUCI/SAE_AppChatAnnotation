@@ -17,7 +17,7 @@ class Chat implements MessageComponentInterface
         $this->connexionsUtilisateurs = [];
         $this->memcached = new \Memcached();
         $this->memcached->addServer('localhost', 11211); // Configurez selon votre environnement
-        $this->bd=Model_ws::getModel();
+            $this->bd=Model_ws::getModel();
     }
 
     public function onOpen(ConnectionInterface $connexion) 
