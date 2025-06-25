@@ -149,6 +149,23 @@ class Frame implements FrameInterface {
         return 128 === ($this->firstByte & 128);
     }
 
+    public function setRsv1($value = true) {
+        if (strlen($this->data) == 0) {
+            throw new \UnderflowException("Cannot set Rsv1 because there is no data.");
+        }
+
+        $this->firstByte =
+            ($this->isFinal() ? 128 : 0)
+            + $this->getOpcode()
+            + ($value ? 64 : 0)
+            + ($this->getRsv2() ? 32 : 0)
+            + ($this->getRsv3() ? 16 : 0)
+        ;
+
+        $this->data[0] = chr($this->firstByte);
+        return $this;
+    }
+
     /**
      * @return boolean
      * @throws \UnderflowException
@@ -310,15 +327,6 @@ class Frame implements FrameInterface {
         }
 
         return $payload ^ str_pad('', $len, $maskingKey, STR_PAD_RIGHT);
-
-        // TODO: Remove this before publish - keeping methods here to compare performance (above is faster but need control against v0.3.3)
-
-        $applied = '';
-        for ($i = 0, $len = strlen($payload); $i < $len; $i++) {
-            $applied .= $payload[$i] ^ $maskingKey[$i % static::MASK_LENGTH];
-        }
-
-        return $applied;
     }
 
     /**

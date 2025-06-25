@@ -2,10 +2,12 @@
 
 namespace Ratchet\RFC6455\Test\Unit\Handshake;
 
+use GuzzleHttp\Psr7\Message;
 use Ratchet\RFC6455\Handshake\RequestVerifier;
 use Ratchet\RFC6455\Handshake\ServerNegotiator;
+use PHPUnit\Framework\TestCase;
 
-class ServerNegotiatorTest extends \PHPUnit_Framework_TestCase
+class ServerNegotiatorTest extends TestCase
 {
     public function testNoUpgradeRequested() {
         $negotiator = new ServerNegotiator(new RequestVerifier());
@@ -23,7 +25,7 @@ Accept-Language: en-US,en;q=0.8
 
 ';
 
-        $request = \GuzzleHttp\Psr7\parse_request($requestText);
+        $request = Message::parseRequest($requestText);
 
         $response = $negotiator->handshake($request);
 
@@ -52,7 +54,7 @@ Accept-Language: en-US,en;q=0.8
 
 ';
 
-        $request = \GuzzleHttp\Psr7\parse_request($requestText);
+        $request = Message::parseRequest($requestText);
 
         $response = $negotiator->handshake($request);
 
@@ -79,7 +81,7 @@ Accept-Language: en-US,en;q=0.8
 
 ';
 
-        $request = \GuzzleHttp\Psr7\parse_request($requestText);
+        $request = Message::parseRequest($requestText);
 
         $response = $negotiator->handshake($request);
 
@@ -106,7 +108,7 @@ Accept-Language: en-US,en;q=0.8
 
 ';
 
-        $request = \GuzzleHttp\Psr7\parse_request($requestText);
+        $request = Message::parseRequest($requestText);
 
         $response = $negotiator->handshake($request);
 
@@ -140,7 +142,7 @@ Accept-Language: en-US,en;q=0.8
 
 ';
 
-        $request = \GuzzleHttp\Psr7\parse_request($requestText);
+        $request = Message::parseRequest($requestText);
 
         $response = $negotiator->handshake($request);
 
@@ -174,7 +176,7 @@ Accept-Language: en-US,en;q=0.8
 
 ';
 
-        $request = \GuzzleHttp\Psr7\parse_request($requestText);
+        $request = Message::parseRequest($requestText);
 
         $response = $negotiator->handshake($request);
 
@@ -204,7 +206,7 @@ Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
 
 ';
 
-        $request = \GuzzleHttp\Psr7\parse_request($requestText);
+        $request = Message::parseRequest($requestText);
 
         $response = $negotiator->handshake($request);
 

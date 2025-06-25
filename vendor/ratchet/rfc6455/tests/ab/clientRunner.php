@@ -1,9 +1,12 @@
 <?php
+
+use GuzzleHttp\Psr7\Message;
 use GuzzleHttp\Psr7\Uri;
+use Ratchet\RFC6455\Handshake\InvalidPermessageDeflateOptionsException;
+use Ratchet\RFC6455\Handshake\PermessageDeflateOptions;
+use Ratchet\RFC6455\Messaging\MessageBuffer;
 use Ratchet\RFC6455\Handshake\ClientNegotiator;
 use Ratchet\RFC6455\Messaging\CloseFrameChecker;
-use Ratchet\RFC6455\Messaging\FrameInterface;
-use Ratchet\RFC6455\Messaging\MessageBuffer;
 use Ratchet\RFC6455\Messaging\MessageInterface;
 use React\Promise\Deferred;
 use Ratchet\RFC6455\Messaging\Frame;
@@ -12,26 +15,24 @@ use React\Socket\Connector;
 
 require __DIR__ . '/../bootstrap.php';
 
-define('AGENT', 'RatchetRFC/0.0.0');
+define('AGENT', 'RatchetRFC/0.3');
 
-$testServer = "127.0.0.1";
+$testServer = $argc > 1 ? $argv[1] : "127.0.0.1";
 
 $loop = React\EventLoop\Factory::create();
 
 $connector = new Connector($loop);
 
-function echoStreamerFactory($conn)
+function echoStreamerFactory($conn, $permessageDeflateOptions = null)
 {
-    return new MessageBuffer(
-        new CloseFrameChecker,
-        function (MessageInterface $msg) use ($conn) {
-            /** @var Frame $frame */
-            foreach ($msg as $frame) {
-                $frame->maskPayload();
-            }
-            $conn->write($msg->getContents());
+    $permessageDeflateOptions = $permessageDeflateOptions ?: PermessageDeflateOptions::createDisabled();
+
+    return new \Ratchet\RFC6455\Messaging\MessageBuffer(
+        new \Ratchet\RFC6455\Messaging\CloseFrameChecker,
+        function (\Ratchet\RFC6455\Messaging\MessageInterface $msg, MessageBuffer $messageBuffer) use ($conn) {
+            $messageBuffer->sendMessage($msg->getPayload(), true, $msg->isBinary());
         },
-        function (FrameInterface $frame) use ($conn) {
+        function (\Ratchet\RFC6455\Messaging\FrameInterface $frame, MessageBuffer $messageBuffer) use ($conn) {
             switch ($frame->getOpcode()) {
                 case Frame::OP_PING:
                     return $conn->write((new Frame($frame->getPayload(), true, Frame::OP_PONG))->maskPayload()->getContents());
@@ -41,7 +42,12 @@ function echoStreamerFactory($conn)
                     break;
             }
         },
-        false
+        false,
+        null,
+        null,
+        null,
+        [$conn, 'write'],
+        $permessageDeflateOptions
     );
 }
 
@@ -51,9 +57,9 @@ function getTestCases() {
 
     $deferred = new Deferred();
 
-    $connector->connect($testServer . ':9001')->then(function (ConnectionInterface $connection) use ($deferred) {
+    $connector->connect($testServer . ':9002')->then(function (ConnectionInterface $connection) use ($deferred, $testServer) {
         $cn = new ClientNegotiator();
-        $cnRequest = $cn->generateRequest(new Uri('ws://127.0.0.1:9001/getCaseCount'));
+        $cnRequest = $cn->generateRequest(new Uri('ws://' . $testServer . ':9002/getCaseCount'));
 
         $rawResponse = "";
         $response = null;
@@ -68,7 +74,7 @@ function getTestCases() {
                 if ($pos) {
                     $data = substr($rawResponse, $pos + 4);
                     $rawResponse = substr($rawResponse, 0, $pos + 4);
-                    $response = \GuzzleHttp\Psr7\parse_response($rawResponse);
+                    $response = Message::parseResponse($rawResponse);
 
                     if (!$cn->validateResponse($cnRequest, $response)) {
                         $connection->end();
@@ -81,7 +87,11 @@ function getTestCases() {
                                 $connection->close();
                             },
                             null,
-                            false
+                            false,
+                            null,
+                            null,
+                            null,
+                            function () {}
                         );
                     }
                 }
@@ -93,24 +103,29 @@ function getTestCases() {
             }
         });
 
-        $connection->write(\GuzzleHttp\Psr7\str($cnRequest));
+        $connection->write(Message::toString($cnRequest));
     });
 
     return $deferred->promise();
 }
 
+$cn = new \Ratchet\RFC6455\Handshake\ClientNegotiator(
+    PermessageDeflateOptions::permessageDeflateSupported() ? PermessageDeflateOptions::createEnabled() : null);
+
 function runTest($case)
 {
     global $connector;
     global $testServer;
+    global $cn;
 
     $casePath = "/runCase?case={$case}&agent=" . AGENT;
 
     $deferred = new Deferred();
 
-    $connector->connect($testServer . ':9001')->then(function (ConnectionInterface $connection) use ($deferred, $casePath, $case) {
-        $cn = new ClientNegotiator();
-        $cnRequest = $cn->generateRequest(new Uri('ws://127.0.0.1:9001' . $casePath));
+    $connector->connect($testServer . ':9002')->then(function (ConnectionInterface $connection) use ($deferred, $casePath, $case, $testServer) {
+        $cn = new ClientNegotiator(
+            PermessageDeflateOptions::permessageDeflateSupported() ? PermessageDeflateOptions::createEnabled() : null);
+        $cnRequest = $cn->generateRequest(new Uri('ws://' . $testServer . ':9002' . $casePath));
 
         $rawResponse = "";
         $response = null;
@@ -124,13 +139,22 @@ function runTest($case)
                 if ($pos) {
                     $data = substr($rawResponse, $pos + 4);
                     $rawResponse = substr($rawResponse, 0, $pos + 4);
-                    $response = \GuzzleHttp\Psr7\parse_response($rawResponse);
+                    $response = Message::parseResponse($rawResponse);
 
                     if (!$cn->validateResponse($cnRequest, $response)) {
+                        echo "Invalid response.\n";
                         $connection->end();
                         $deferred->reject();
                     } else {
-                        $ms = echoStreamerFactory($connection);
+                        try {
+                            $permessageDeflateOptions = PermessageDeflateOptions::fromRequestOrResponse($response)[0];
+                            $ms = echoStreamerFactory(
+                                $connection,
+                                $permessageDeflateOptions
+                            );
+                        } catch (InvalidPermessageDeflateOptionsException $e) {
+                            $connection->end();
+                        }
                     }
                 }
             }
@@ -145,7 +169,7 @@ function runTest($case)
             $deferred->resolve();
         });
 
-        $connection->write(\GuzzleHttp\Psr7\str($cnRequest));
+        $connection->write(Message::toString($cnRequest));
     });
 
     return $deferred->promise();
@@ -157,10 +181,12 @@ function createReport() {
 
     $deferred = new Deferred();
 
-    $connector->connect($testServer . ':9001')->then(function (ConnectionInterface $connection) use ($deferred) {
-        $reportPath = "/updateReports?agent=" . AGENT . "&shutdownOnComplete=true";
+    $connector->connect($testServer . ':9002')->then(function (ConnectionInterface $connection) use ($deferred, $testServer) {
+        // $reportPath = "/updateReports?agent=" . AGENT . "&shutdownOnComplete=true";
+        // we will stop it using docker now instead of just shutting down
+        $reportPath = "/updateReports?agent=" . AGENT;
         $cn = new ClientNegotiator();
-        $cnRequest = $cn->generateRequest(new Uri('ws://127.0.0.1:9001' . $reportPath));
+        $cnRequest = $cn->generateRequest(new Uri('ws://' . $testServer . ':9002' . $reportPath));
 
         $rawResponse = "";
         $response = null;
@@ -175,7 +201,7 @@ function createReport() {
                 if ($pos) {
                     $data = substr($rawResponse, $pos + 4);
                     $rawResponse = substr($rawResponse, 0, $pos + 4);
-                    $response = \GuzzleHttp\Psr7\parse_response($rawResponse);
+                    $response = Message::parseResponse($rawResponse);
 
                     if (!$cn->validateResponse($cnRequest, $response)) {
                         $connection->end();
@@ -183,12 +209,16 @@ function createReport() {
                     } else {
                         $ms = new MessageBuffer(
                             new CloseFrameChecker,
-                            function (MessageInterface $msg) use ($deferred, $stream) {
+                            function (MessageInterface $msg) use ($deferred, $connection) {
                                 $deferred->resolve($msg->getPayload());
-                                $stream->close();
+                                $connection->close();
                             },
                             null,
-                            false
+                            false,
+                            null,
+                            null,
+                            null,
+                            function () {}
                         );
                     }
                 }
@@ -200,7 +230,7 @@ function createReport() {
             }
         });
 
-        $connection->write(\GuzzleHttp\Psr7\str($cnRequest));
+        $connection->write(Message::toString($cnRequest));
     });
 
     return $deferred->promise();
@@ -218,7 +248,13 @@ getTestCases()->then(function ($count) use ($loop) {
             $allDeferred->resolve();
             return;
         }
-        runTest($i)->then($runNextCase);
+        echo "Running test $i/$count...";
+        $startTime = microtime(true);
+        runTest($i)
+            ->then(function () use ($startTime) {
+                echo " completed " . round((microtime(true) - $startTime) * 1000) . " ms\n";
+            })
+            ->then($runNextCase);
     };
 
     $i = 0;

@@ -1,6 +1,6 @@
 # Ratchet
 
-[![Build Status](https://secure.travis-ci.org/ratchetphp/Ratchet.png?branch=master)](http://travis-ci.org/ratchetphp/Ratchet)
+[![GitHub Actions][GA Image]][GA Link]
 [![Autobahn Testsuite](https://img.shields.io/badge/Autobahn-passing-brightgreen.svg)](http://socketo.me/reports/ab/index.html)
 [![Latest Stable Version](https://poser.pugx.org/cboden/ratchet/v/stable.png)](https://packagist.org/packages/cboden/ratchet)
 
@@ -12,7 +12,7 @@ Build up your application through simple interfaces and re-use your application 
 Shell access is required and root access is recommended.
 To avoid proxy/firewall blockage it's recommended WebSockets are requested on port 80 or 443 (SSL), which requires root access.
 In order to do this, along with your sync web stack, you can either use a reverse proxy or two separate machines.
-You can find more details in the [server conf docs](http://socketo.me/docs/deploy#serverconfiguration).
+You can find more details in the [server conf docs](http://socketo.me/docs/deploy#server_configuration).
 
 ### Documentation
 
@@ -68,7 +68,7 @@ class MyChat implements MessageComponentInterface {
 
     // Run the server application through the WebSocket protocol on port 8080
     $app = new Ratchet\App('localhost', 8080);
-    $app->route('/chat', new MyChat);
+    $app->route('/chat', new MyChat, array('*'));
     $app->route('/echo', new Ratchet\Server\EchoServer, array('*'));
     $app->run();
 ```
@@ -81,3 +81,7 @@ class MyChat implements MessageComponentInterface {
     conn.onmessage = function(e) { console.log(e.data); };
     conn.onopen = function(e) { conn.send('Hello Me!'); };
 ```
+
+[GA Image]: https://github.com/ratchetphp/Ratchet/workflows/CI/badge.svg
+
+[GA Link]: https://github.com/ratchetphp/Ratchet/actions?query=workflow%3A%22CI%22+branch%3Amaster
