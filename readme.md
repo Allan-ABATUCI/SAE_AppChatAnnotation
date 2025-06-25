@@ -2,7 +2,7 @@
 
 #### 1. **Serveur Web**
 
-- Installe un serveur web (Apache/Nginx) ou utilise un outil comme XAMPP.
+- Installe un outil comme XAMPP.
 - Avec XAMPP : place le projet dans le dossier `htdocs`.
 
 #### 2. **Dépendances Composer**
