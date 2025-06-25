@@ -112,7 +112,7 @@ class Model
  */
 public function getUserById($id)
 {
-    $req = $this->bd->prepare("SELECT * FROM Users WHERE id = :id");
+    $req = $this->bd->prepare("SELECT * FROM Users WHERE user_id = :id");
     $req->bindValue(':id', $id, PDO::PARAM_INT);
     $req->execute();
     return $req->fetch(PDO::FETCH_ASSOC);
@@ -328,4 +328,4 @@ public function insertMessageWithEmotion($sender_id, $user2_id, $message, $emoti
         return $req->execute();
     }
 }
-}
+

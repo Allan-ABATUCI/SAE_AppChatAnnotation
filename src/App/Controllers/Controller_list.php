@@ -11,10 +11,11 @@ class Controller_list extends Controller
     }
     function action_contact()
     {
-        session_start();
+       // session_start();
         if ($_SESSION['id']) {
             $bd = Model::getModel();
             $cont = $bd->getOnlineUsers();
+             $current_user = $bd->getUserById($_SESSION['id']);
             
             $data = [
                 'contacts' => $cont,
