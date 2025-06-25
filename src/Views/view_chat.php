@@ -12,8 +12,7 @@
 <body>
   <div class="chat-container">
     <header class="chat-header">
-      <!-- Le bouton devient un lien vers la page contacts existante -->
-      <a href="?controller=list" id="btnHome" title="Retour aux contacts">Contacts</a>
+      <a href="/view_contact.html" id="btnHome" title="Retour aux contacts">Contacts</a>
       <div id="chatWithName">Chat</div>
     </header>
 
@@ -23,30 +22,31 @@
       <button id="toggleEmoji" title="Ouvrir le sélecteur d'émojis">😃</button>
       <input type="text" id="messageInput" placeholder="Écris un message..." autocomplete="off" />
       <button id="sendBtn">Envoyer</button>
-      <emoji-picker style="display:none;"></emoji-picker>
+      <!-- Mini-picker avec 5 emojis -->
+      <div id="miniPicker">
+        <span class="mini-picker-emoji">😊</span>
+        <span class="mini-picker-emoji">😂</span>
+        <span class="mini-picker-emoji">😎</span>
+        <span class="mini-picker-emoji">😢</span>
+        <span class="mini-picker-emoji">😡</span>
+      </div>
     </div>
   </div>
 
   <script type="module">
+    // import emoji-picker 
     import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
 
-    const currentChatId = 'ContactUnique'; 
+    const currentChatId = 'ContactUnique';
+    const messages = { ContactUnique: [{ sender: 'other', text: "Salut ! Comment tu vas ?" }], };
 
-      const messages = {
-      ContactUnique: [
-        { sender: 'other', text: "Salut ! Comment tu vas ?" },
-      ],
-    };
-
-    // Elements DOM
     const chatBox = document.getElementById('chatBox');
     const chatWithName = document.getElementById('chatWithName');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
-    const emojiPicker = document.querySelector('emoji-picker');
     const toggleEmoji = document.getElementById('toggleEmoji');
+    const miniPicker = document.getElementById('miniPicker');
 
-    // Affiche tous les messages
     function renderMessages() {
       chatBox.innerHTML = '';
       const msgs = messages[currentChatId] || [];
@@ -59,7 +59,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Envoie un message
     function sendMessage() {
       const text = messageInput.value.trim();
       if (!text) return;
@@ -67,26 +66,25 @@
       messages[currentChatId].push({ sender: 'user', text });
       renderMessages();
       messageInput.value = '';
-      emojiPicker.style.display = 'none';
+      miniPicker.style.display = 'none';
     }
 
     sendBtn.addEventListener('click', sendMessage);
-
-    messageInput.addEventListener('keypress', e => {
-      if (e.key === 'Enter') sendMessage();
-    });
+    messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
 
     toggleEmoji.addEventListener('click', () => {
-      emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+      miniPicker.style.display = miniPicker.style.display === 'flex' ? 'none' : 'flex';
     });
 
-    emojiPicker.addEventListener('emoji-click', event => {
-      messageInput.value += event.detail.unicode;
-      messageInput.focus();
+    document.querySelectorAll('.mini-picker-emoji').forEach(e => {
+      e.addEventListener('click', () => {
+        messageInput.value += e.textContent;
+        messageInput.focus();
+        miniPicker.style.display = 'none';
+      });
     });
 
-    // Initialisation
-    chatWithName.textContent = "<?php echo $username?>";
+    chatWithName.textContent = "ContactUnique";
     renderMessages();
   </script>
 </body>
