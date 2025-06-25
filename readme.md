@@ -48,7 +48,9 @@
   - ⚠️ Important le scipt change des configuration pour mettre un service Memcached qui se redémarre seul
   - Il y a un script `install.sh` qui permet d'installer et configurer memcached et l'extension php-memcached
   - Faire `chmod +x install.sh` pour ensuite le lancer `sudo ./install.sh`
-  - Si Xampp installer avec  `/opt/lampp/bin/pecl install memcached`
+  - Si Xampp :
+   - installer avec  `/opt/lampp/bin/pecl install memcached`
+   - mettre `extension=memcached.so` dans son php.ini
 
 ### Developpement
 
