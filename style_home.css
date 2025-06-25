@@ -6,12 +6,14 @@ body, html {
     color: black;
 }
 
+
 .container {
     display: flex;
     height: 100vh;
     background-color: #F4F7FA;
     overflow: hidden;
 }
+
 
 .sidebar {
     width: 80px;

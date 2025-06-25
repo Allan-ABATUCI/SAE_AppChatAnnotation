@@ -1,6 +1,7 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
+
 CREATE TABLE `Message` (
   `conversation_id` int NOT NULL,
   `message_id` int UNIQUE NOT NULL,

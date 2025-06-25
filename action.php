@@ -1,5 +1,6 @@
 <?php
 
+
 session_start();
 
 // Script de déconnexion : (requête AJAX depuis group_chat.php et discussion.php) : Si le bouton Logout a été cliqué dans group_chat.php et discussion.php, et que la requête HTTP a été envoyée/effectuée via AJAX
