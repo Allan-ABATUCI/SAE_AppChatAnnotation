@@ -1,5 +1,4 @@
-    /* === Reset et Body === */
-    body {
+body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: radial-gradient(circle at center, #0b0c1b, #130f40, #1b1464);
@@ -7,11 +6,10 @@
       display: flex;
       color: #d3d3f4;
       user-select: none;
-      justify-content: center; /* centrer le chat seul */
+      justify-content: center;
       align-items: center;
     }
 
-    /* On garde la classe chat-container et son style intacte */
     .chat-container {
       width: 600px;
       height: 90vh;
@@ -24,7 +22,6 @@
       position: relative;
     }
 
-    /* === Header chat === */
     .chat-header {
       background: linear-gradient(90deg, #5a2aeb, #8c3eff);
       color: #d3d3f4;
@@ -39,7 +36,6 @@
       user-select: none;
     }
 
-    /* Bouton Accueil comme lien */
     #btnHome {
       background: transparent;
       border: 2px solid #d3d3f4;
@@ -51,7 +47,7 @@
       transition: background-color 0.3s, color 0.3s;
       user-select: none;
       font-size: 14px;
-      text-decoration: none; /* lien sans soulignement */
+      text-decoration: none;
       display: inline-block;
       text-align: center;
     }
@@ -63,7 +59,6 @@
       box-shadow: 0 0 10px #a18fff;
     }
 
-    /* === Zone des messages === */
     .chat-box {
       flex: 1;
       padding: 20px;
@@ -85,7 +80,6 @@
       border-radius: 10px;
     }
 
-    /* === Messages === */
     .message {
       max-width: 65%;
       padding: 14px 18px;
@@ -123,7 +117,6 @@
       box-shadow: 0 0 25px #9c85ff;
     }
 
-    /* === Zone d'envoi === */
     .chat-input {
       display: flex;
       align-items: center;
@@ -170,37 +163,25 @@
       box-shadow: 0 0 15px #c3bfff;
     }
 
-    /* Emoji picker style override */
-    emoji-picker {
+    /* Mini picker styles */
+    #miniPicker {
       position: absolute;
       bottom: 60px;
       left: 20px;
-      z-index: 1000;
-      box-shadow: 0 0 20px #7f5fffaa;
-      border-radius: 15px;
+      display: none;
       background: #2a267d;
-      --emoji-picker-background-color: #2a267d;
-      --emoji-picker-category-button-hover-background: #7f5fff;
-      --emoji-picker-category-button-active-background: #c3bfff;
-      --emoji-picker-group-label-color: #d3d3f4;
-      --emoji-picker-scrollbar-thumb-background-color: #7f5fff;
-      --emoji-picker-scrollbar-track-background-color: #1c1f3c;
-      --emoji-picker-selected-emoji-background-color: #c3bfff;
+      padding: 8px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #7f5fffaa;
+      display: flex;
+      gap: 8px;
     }
-
-    #toggleEmoji {
-      background: transparent;
-      border: none;
+    .mini-picker-emoji {
       font-size: 24px;
       cursor: pointer;
-      color: #d3d3f4;
       user-select: none;
-      padding: 0 6px;
-      transition: color 0.3s;
+      transition: transform 0.2s;
     }
-
-    #toggleEmoji:hover {
-      color: #c3bfff;
-      text-shadow: 0 0 8px #c3bfff;
+    .mini-picker-emoji:hover {
+      transform: scale(1.2);
     }
-  
