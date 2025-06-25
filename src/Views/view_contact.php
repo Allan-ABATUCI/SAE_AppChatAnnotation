@@ -323,7 +323,7 @@ body, html {
         <div class="users">
             <?php foreach ($contacts as $row): ?>
                 <?php if ($row['user_id'] !== $_SESSION['id']): ?>
-                    <div class="user-card" onclick="openChatBox(<?= $row['user_id'] ?>, '<?= htmlspecialchars(addslashes($row['username'])) ?>')">
+                    <div class="user-card"  onclick="openChatBox(<?= $row['user_id'] ?>, '<?= htmlspecialchars(addslashes($row['username'])) ?>')">
                         <img src="src/Content/img/profile.png" alt="<?= htmlspecialchars($row['username']) ?>" class="avatar">
                         <span><?= htmlspecialchars($row['username']) ?></span>
                     </div>
@@ -376,6 +376,14 @@ import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js';
 
 let currentChatId = null;
 let currentChatName = '';
+const id="<?php echo session_id() ;?>";
+
+document.querySelectorAll('.user-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const currentChatId = this.getAttribute('data-user-id');
+
+    });
+});
 
 // Messages stockés par contact (simulé)
 let messages = {};
@@ -429,7 +437,7 @@ function sendMessage() {
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({
             content: text,
-            emotion,
+            emotion:emotion,
             recipient: currentChatId
         }));
     }
@@ -437,6 +445,7 @@ function sendMessage() {
     messageInput.value = '';
     emotionSelect.value = '';
 }
+
 
 sendBtn.addEventListener('click', sendMessage);
 messageInput.addEventListener('keypress', e => {
@@ -478,7 +487,7 @@ function initWebSocket() {
     }
     if (!currentChatId) return;
 
-    ws = new WebSocket(`ws://${window.location.hostname}:8081/chat?id=${encodeURIComponent(currentChatId)}`);
+    ws = new WebSocket(`ws://${window.location.hostname}:8081/chat?id=${id}`);
 
     ws.onopen = () => {
         console.log('WebSocket connecté');
@@ -487,7 +496,8 @@ function initWebSocket() {
     ws.onmessage = event => {
         try {
             const msg = JSON.parse(event.data);
-            if (msg.content && msg.sender && msg.sender !== currentChatId) {
+            if (msg.content && msg.sender && msg.sender == currentChatId) {
+                console.log();
                 if (!messages[currentChatId]) messages[currentChatId] = [];
                 messages[currentChatId].push({ sender: 'other', text: msg.content, emotion: msg.emotion || 'aucune' });
                 renderMessages();
@@ -502,8 +512,7 @@ function initWebSocket() {
     };
 
     ws.onclose = () => {
-        console.log('WebSocket déconnecté. Reconnexion dans 5s...');
-        setTimeout(initWebSocket, 5000);
+        console.log('WebSocket déconnecté.');
     };
 }
 

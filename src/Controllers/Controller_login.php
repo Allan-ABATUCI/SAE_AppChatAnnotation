@@ -25,11 +25,10 @@ public function action_login()
         $user = $bd->UserExists($email) ? $bd->getUser($email) : false;
         
         if ($user && password_verify($mdp, $user['password_hash'])) {
-            echo "Test 2"; 
             // Standard PHP session for web requests
             $_SESSION['email'] = $email;
             $_SESSION['id'] = $user['user_id'];
-            
+            session_write_close();
             // Additional shared data in Memcached
             $memcached = new \Memcached();
             $memcached->addServer('localhost', 11211);
@@ -40,7 +39,7 @@ public function action_login()
                 'email' => $email,
             ];
             
-            $memcached->set('ws_user_'.$user['user_id'], $wsData, 86400); //en secondes
+            $memcached->set('ws_user_'.session_id(), $wsData, 86400); //en secondes
                         
             header('Location: ?controller=list');
 

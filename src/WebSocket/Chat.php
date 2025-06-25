@@ -27,14 +27,15 @@ class Chat implements MessageComponentInterface
         // Analyser la chaîne de requête pour le jeton
         $queryString = $connexion->httpRequest->getUri()->getQuery();
         parse_str($queryString, $queryParameters);
-
         if (!isset($queryParameters['id'])) {
             echo "erreur : pas d'id en query params";
             var_dump($queryParameters);
             
         }
+        // 2. Récupérer les données de session depuis Memcached
+        $sessionData =$this->memcached->get('ws_user_'.$queryParameters['id']);
 
-        $userId = $queryParameters['id'];
+        $userId = $sessionData['user_id'];
         echo "Nouvelle connexion ({$userId}) ouverte. :\n";
         
         
@@ -42,8 +43,7 @@ class Chat implements MessageComponentInterface
             var_dump($userId);
         }
 
-        // 2. Récupérer les données de session depuis Memcached
-        $sessionData =$this->memcached->get('ws_user_'.$userId);
+   
         
         if (!$sessionData) {
             echo "erreur : Session data : \n";
@@ -52,7 +52,7 @@ class Chat implements MessageComponentInterface
             $keys = $this->memcached->getAllKeys();
         }
 
-
+        echo "TEST : "; var_dump($sessionData);
         // Stocker les données de session dans la connexion pour un accès ultérieur
         $connexion->sessionData = $sessionData;
 
@@ -74,10 +74,9 @@ class Chat implements MessageComponentInterface
         if (!isset($expediteur->sessionData)) {
             return;
         }
-    
+        
         $senderData = $expediteur->sessionData;
-        $senderId = $senderData['id'];
-        $senderName = $senderData['username'];
+        $senderId = $senderData['user_id'];
 
         // Get recipient ID from message
         $recipientId = $message['recipient'] ?? null;
@@ -86,7 +85,7 @@ class Chat implements MessageComponentInterface
             return;
         }
 
-        echo "Message from {$senderName} to {$recipientId}: {$message['content']}\n";
+        echo "Message from {$senderId} to {$recipientId}: {$message['content']}\n";
         
         if($messageId=$this->bd->insertMessageWithEmotion($senderId,
             $recipientId,
@@ -99,7 +98,6 @@ class Chat implements MessageComponentInterface
             $recipientConn->send(json_encode([
                 'content' => $message['content'],
                 'sender' => $senderId,
-                'senderName' => $senderName,
                 'msgid' => $messageId,
             ]));
         } else {

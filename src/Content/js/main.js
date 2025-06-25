@@ -68,21 +68,7 @@
   }
 })(jQuery);
 
-document.getElementById("searchInput").addEventListener("input", function () {
-  const filter = this.value.toLowerCase(); // Convert input to lowercase for case-insensitive comparison
-  const contactItems = document.querySelectorAll(".contact-item");
 
-  contactItems.forEach((item) => {
-    const contactName = item
-      .querySelector(".contact-info")
-      .textContent.toLowerCase();
-    if (contactName.includes(filter)) {
-      item.style.display = ""; // Show the item if it matches the filter
-    } else {
-      item.style.display = "none"; // Hide the item if it doesn't match the filter
-    }
-  });
-});
 
 
 function postToChat(userId) {
