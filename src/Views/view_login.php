@@ -1,58 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="fr">
 <head>
-	<title>Login</title>
-	<?php require_once 'view_begin.php'; ?>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion / Inscription</title>
+  <?php require_once 'view_begin.php'; ?>
+
+  <!-- FontAwesome pour les icônes -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+
+  <!-- Le CSS style_login.css -->
+  <link rel="stylesheet"
+        href="src/Content/css/style_login.css"/>
 </head>
-
 <body>
+  <div class="container" id="container">
 
-	<div class="limiter">
-		<div class="container-login100" style="background-image: url('src	/Content/img/bg-01.jpg');">
-			<div class="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-54">
-				<form class="login100-form validate-form" method="post" action='?controller=login&action=login'>
-					<span class="login100-form-title p-b-49">
-						Connexion
-					</span>
+    <!-- Formulaire Connexion -->
+    <div class="form-container sign-in">
+      <form method="post" action="?controller=login&action=login">
+        <h1>Connexion</h1>
+        <div class="social-icons">
+          <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
+          <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
+          <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
+        </div>
+        <span>ou utilisez votre adresse mail</span>
 
-					<div class="wrap-input100 validate-input m-b-23" data-validate="email is required">
-						<span class="label-input100">Email</span>
-						<input class="input100" type="mail" name="email" placeholder="Entrez votre adresse e-mail">
-						<span class="focus-input100" data-symbol="&#xf206;"></span>
-					</div>
+        <?php if (isset($login_error_message)) : ?>
+          <div style="color: red; margin-bottom: 10px;">
+            <?= htmlspecialchars($login_error_message) ?>
+          </div>
+        <?php endif; ?>
 
-					<div class="wrap-input100 validate-input" data-validate="Password is required">
-						<span class="label-input100">Mot de passe</span>
-						<input class="input100" type="password" name="mdp" placeholder="Entrez votre mot de passe">
-						<span class="focus-input100" data-symbol="&#xf190;"></span>
-					</div>
+        <input type="email" name="email" placeholder="Email" required/>
+        <input type="password" name="mdp" placeholder="Mot de passe" required/>
+        <a href="#">Mot de passe oublié ?</a>
+        <button type="submit" name="submit_login">Se connecter</button>
+      </form>
+    </div>
 
-					<div class="text-right p-t-8 p-b-31">
+    <!-- Formulaire Inscription -->
+    <div class="form-container sign-up">
+      <form method="post" action="?controller=login&action=register">
+        <h1>Inscription</h1>
 
-					</div>
+        <?php if (isset($register_error_message)) : ?>
+          <div style="color: red; margin-bottom: 10px;">
+            <?= htmlspecialchars($register_error_message) ?>
+          </div>
+        <?php endif; ?>
 
-					<div class="container-login100-form-btn">
-						<div class="wrap-login100-form-btn">
-							<div class="login100-form-bgbtn"></div>
-							<button class="login100-form-btn" name="submit_login">
-								Connexion
-							</button>
-						</div>
-					</div>
+        <input type="text" name="prenom" placeholder="Prénom" required />
+        <input type="text" name="nom" placeholder="Nom" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="mdp" placeholder="Mot de passe" required />
+        <button type="submit" name="submit_registration">S'inscrire</button>
+      </form>
+    </div>
 
-					<div class="txt1 text-center p-t-54 p-b-20">
-						<span color="black">
-							Vous n'avez pas encore de compte ? <a href="?controller=login&action=form_register">Inscrivez-vous ici pour commencer
-								! </a>
-						</span>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
+    <!-- Panels toggle -->
+    <div class="toggle-container">
+      <div class="toggle">
+        <div class="toggle-panel toggle-left">
+          <h1>Content de te revoir !</h1>
+          <p id="new">Connecte-toi pour retrouver tes amis et discuter.</p>
+          <button class="hidden" id="login">Connexion</button>
+        </div>
+        <div class="toggle-panel toggle-right">
+          <h1 id="new">Bienvenue parmi nous !</h1>
+          <p id="new">Créez un compte pour commencer à chatter avec vos amis.</p>
+          <button class="hidden" id="register">Inscription</button>
+        </div>
+      </div>
+    </div>
 
+  </div>
 
-	<div id="dropDownSelect1"></div>
+  <script>
+    const container = document.getElementById("container");
+    const registerBtn = document.getElementById("register");
+    const loginBtn = document.getElementById("login");
 
-	<?php require_once 'view_end.php'; ?>
+    registerBtn.addEventListener("click", () => container.classList.add("active"));
+    loginBtn.addEventListener("click", () => container.classList.remove("active"));
+
+    // Si tu veux gérer un switch automatique selon un paramètre PHP (ex: erreur inscription)
+    <?php if (isset($register_error_message)) : ?>
+      container.classList.add("active");
+    <?php endif; ?>
+  </script>
+</body>
+</html>

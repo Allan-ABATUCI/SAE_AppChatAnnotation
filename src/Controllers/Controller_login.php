@@ -20,8 +20,8 @@ public function action_login()
 {
     if (isset($_POST['submit_login'])) { 
         $bd = Model::getModel();
-        $email = e($_POST['email']);
-        $mdp = e($_POST['mdp']); 
+        $email = htmlspecialchars($_POST['email']);
+        $mdp = htmlspecialchars($_POST['mdp']); 
         $user = $bd->UserExists($email) ? $bd->getUser($email) : false;
         
         if ($user && password_verify($mdp, $user['password_hash'])) {
@@ -71,17 +71,17 @@ public function action_login()
     public function action_register()
     {
         if (isset($_POST['submit_registration'])) {
-            $username = e($_POST['prenom']) . ' ' . e($_POST['nom']);
-            $email = e($_POST['email']);
+            $username = htmlspecialchars($_POST['prenom']) . ' ' . htmlspecialchars($_POST['nom']);
+            $email = htmlspecialchars($_POST['email']);
             if (!preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
                 echo "email invalide";
             }
-            $mdp = password_hash(e($_POST['mdp']), PASSWORD_DEFAULT);
+            $mdp = password_hash(htmlspecialchars($_POST['mdp']), PASSWORD_DEFAULT);
             $bd = Model::getModel();
 
             if (!$bd->UserExists($email)) {
                 $_SESSION['email'] = $email;
-                $_SESSION['id'] = $bd->createUser($username, $email, $mdp);
+                $_SESSION['user_id'] = $bd->createUser($username, $email, $mdp);
                 $wsData = [
                     'user_id' => $_SESSION['user_id'],
                     'email' => $_SESSION['email'],
