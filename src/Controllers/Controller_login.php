@@ -90,9 +90,8 @@ public function action_login()
                 $memcached->addServer('localhost', 11211);
                 $memcached->set('ws_user_'.$_SESSION['user_id'], $wsData, 86400);
                 
-
-                header('Location: ?controller=list');
                 $bd->updateUserStatus($_SESSION['id'], true);
+                header('Location: ?controller=list');
             } else {
                 $message = "L'utilisateur existe déjà";
                 echo $message;
